@@ -1,0 +1,52 @@
+menu "IoT Lock Configuration"
+
+    config MAX_CODE_LEN
+        int "Maximum supported length of QR code"
+        range 26 4296
+        default 4296
+        help
+            Maxumum number of alphanumeric characters in one code.
+
+    config UI_TQ
+        int "User interface time quantum [ms]"
+        range 10 1000
+        default 80
+        help
+            Define the resolution of LED and beep control.
+
+    config UI_DEF_BRG
+        int "Default LED bightness Q8"
+        range 0 256
+        default 128
+        help
+            Default global LED brightness level.
+
+    config UI_OPEN_TIME
+        int "Lock release time [ms]"
+        range 100 10000
+        default 4000
+        help
+            Solenoid will be active during this time.
+
+    config UI_OPEN_DUTY
+        int "Lock maximum duty [%]"
+        range 10 100
+        default 25
+        help
+            Solenoid will be active at most this % of period.
+
+    config UI_OPEN_PERIOD
+        int "Lock duty counting period [s]"
+        range 10 6000
+        default 60
+        help
+            Solenoid duty will be counted within this time.
+
+    config CLOUD_RETRY_TIME
+        int "Time to wait after a failed upload attempt [s]"
+        range 1 3600
+        default 30
+        help
+            Uploading reports will be halted for this time after failure.
+
+endmenu

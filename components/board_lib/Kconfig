@@ -1,0 +1,177 @@
+config ENV_GPIO_RANGE_MIN
+    int
+    default 0
+
+config ENV_GPIO_RANGE_MAX
+    int
+    default 39
+
+config ENV_GPIO_IN_RANGE_MAX
+    int
+    default ENV_GPIO_RANGE_MAX
+
+config ENV_GPIO_OUT_RANGE_MAX
+    int
+    default 33
+
+menu "Board Library"
+
+    config BOARD_BUZZ_GPIO
+        int "Buzzer GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 32
+        help
+            GPIO number (IOxx) connected to buzzer.
+
+    config BOARD_LED_R_GPIO
+        int "Red LED GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 4
+        help
+            GPIO number (IOxx) connected to red LED.
+
+    config BOARD_LED_G_GPIO
+        int "Green LED GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 17
+        help
+            GPIO number (IOxx) connected to green LED.
+
+    config BOARD_LED_B_GPIO
+        int "Blue LED GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 23
+        help
+            GPIO number (IOxx) connected to blue LED.
+
+    config BOARD_RELAY_GPIO
+        int "Relay GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 2
+        help
+            GPIO number (IOxx) connected to relay.
+
+    config BOARD_LED_IR_GPIO
+        int "IR LED GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 33
+        help
+            GPIO number (IOxx) connected to IR LED.
+
+    config BOARD_IR_FREQ
+        int "IR LED blink frequency"
+        range 1 100
+        default 2
+        help
+            Frequency [Hz] of IR led blink.
+
+    config BOARD_IR_DUTY
+        int "IR LED blink duty"
+        range 0 100
+        default 12
+        help
+            Duty [%] of IR led blink.
+
+    config BOARD_WIEGAND_D0_GPIO
+        int "Wiegand D0 GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 26
+        help
+            GPIO number (IOxx) connected to Wiegand D0.
+
+    config BOARD_WIEGAND_D1_GPIO
+        int "Wiegand D1 GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 27
+        help
+            GPIO number (IOxx) connected to Wiegand D1.
+
+    config BOARD_WIEGAND_PULSE
+        int "Wiegnad pulse time"
+        range 2 10
+        default 5
+        help
+            Time [10us] of active wiegand state.
+
+    config BOARD_WIEGAND_PERIOD
+        int "Wiegnad period"
+        range 20 2000
+        default 100
+        help
+            Period [10us] of wiegand pulses.
+
+    config BOARD_READER_EN_GPIO
+        int "Reader power control GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 25
+        help
+            GPIO number (IOxx) connected to GM65 regulator.
+
+    config BOARD_READER_TRG_GPIO
+        int "Reader trigger GPIO number (unused)"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 12
+        help
+            GPIO number (IOxx) connected to GM65 trigger.
+
+    config BOARD_READER_TXD_GPIO
+        int "Reader TXD GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 13
+        help
+            GPIO number (IOxx) connected to GM65 serial input.
+
+    config BOARD_READER_RXD_GPIO
+        int "Reader RXD GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 14
+        help
+            GPIO number (IOxx) connected to GM65 serial ouput.
+
+    config BOARD_READER_ON_DELAY
+        int "Reader delay after enable [ms]"
+        default 10000
+        help
+            Delay after power on before communication [ms].
+
+    config BOARD_READER_OFF_DELAY
+        int "Reader delay after disable [ms]"
+        default 500
+        help
+            Delay after power off [ms].
+
+    config BOARD_READER_TIMEOUT
+        int "Reader communication timeout [ms]"
+        default 400
+        help
+            maximum time between command TX and response RX [ms].
+
+    config BOARD_SDA_GPIO
+        int "RTC SDA GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 19
+        help
+            GPIO number (IOxx) connected to RTC SDA.
+
+    config BOARD_SCL_GPIO
+        int "RTC SCL GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 21
+        help
+            GPIO number (IOxx) connected to RTC SCL.
+
+    config BOARD_RTC_INT_GPIO
+        int "RTC INT GPIO number (unused)"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 22
+        help
+            GPIO number (IOxx) connected to RTC INT.
+
+    config BOARD_VM_ADC_CH
+        int "VM ADC channel number number"
+        range 0 7
+        default 6
+        help
+            ADC channel number c(ADC1_CHxx) connected to voltage divider.
+            
+endmenu

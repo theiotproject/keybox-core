@@ -1,0 +1,9 @@
+[submodule "components/flash_ring"]
+	path = components/flash_ring
+	url = git@github.com:theiotproject/flash_ring.git
+[submodule "components/rtc_daemon"]
+	path = components/rtc_daemon
+	url = git@github.com:theiotproject/rtc_daemon.git
+[submodule "third_party/golioth-esp-idf-sdk"]
+	path = third_party/golioth-esp-idf-sdk
+	url = https://github.com/golioth/golioth-esp-idf-sdk.git

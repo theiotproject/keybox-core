@@ -1,0 +1,7 @@
+build
+esp_idf_components
+sdkconfig
+sdkconfig.old
+.project
+.cproject
+.settings
