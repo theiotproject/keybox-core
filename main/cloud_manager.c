@@ -13,6 +13,7 @@
 #define CLOUD_FORM_OPEN(r) "%llu,%c", (uint64_t)(r)->when, (char)(r)->data.open.access + '0'
 #define CLOUD_FORM_WIEGAND(r) "%llu,%hhu,%llx", (uint64_t)(r)->when, (r)->data.wiegand.code_len, (r)->data.wiegand.code
 #define CLOUD_FORM_TAMPER(r) "%llu", (uint64_t)(r)->when
+#define CLOUD_FORM_BUTTON(r) "%llu", (uint64_t)(r)->when
 
 typedef struct {
 		const char *name;
@@ -40,7 +41,8 @@ static const cloud_numeric_rpc_t cloud_numeric_rpcs[] = {
 static const char *cloud_report_paths[REPORT_KIND_MAX] = {
 		"open",
 		"wiegand",
-		"tamper"
+		"tamper",
+		"button",
 };
 /* events generated in this module */
 ESP_EVENT_DEFINE_BASE(CLOUD_EVENT);
@@ -312,6 +314,11 @@ static golioth_status_t cloud_report_exec(report_data_t *report)
 		len = snprintf(NULL, 0, CLOUD_FORM_TAMPER(report));
 		buf = malloc(len + 1);
 		sprintf(buf, CLOUD_FORM_TAMPER(report));
+		break;
+	case REPORT_KIND_BUTTON:
+		len = snprintf(NULL, 0, CLOUD_FORM_BUTTON(report));
+		buf = malloc(len + 1);
+		sprintf(buf, CLOUD_FORM_BUTTON(report));
 		break;
 	default:
 		ESP_LOGW(cloud_tag, "Skipped unsupported report kind %u", (uint32_t)report->kind);

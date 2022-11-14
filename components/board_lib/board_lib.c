@@ -1,3 +1,5 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 #include "driver/gpio.h"
 #include "driver/adc.h"
 #include "driver/ledc.h"
@@ -25,8 +27,14 @@
 ESP_EVENT_DEFINE_BASE(BOARD_EVENT);
 static esp_adc_cal_characteristics_t adc1_chars;
 
-/* call once before using other board functions */
-void board_init(void)
+static void button_gpio_isr(void* arg);
+static void button_timer_cb(TimerHandle_t timer);
+
+static esp_event_loop_handle_t board_event_loop;
+TimerHandle_t board_button_timer;
+
+/* call once before using other board functions, provide event loop for button */
+void board_init(esp_event_loop_handle_t event_loop)
 {
 	ledc_timer_config_t timer_conf;
 	ledc_channel_config_t ledc_conf;
@@ -35,6 +43,8 @@ void board_init(void)
 	adc_digi_pattern_config_t adc_ptn_conf;
 	adc_digi_configuration_t adc_digi_conf;
 	rmt_config_t rmt_conf;
+
+	board_event_loop = event_loop;
 
 	/* output GPIOs */
 	const gpio_config_t gpio_out_conf = {
@@ -134,6 +144,15 @@ void board_init(void)
 		ESP_ERROR_CHECK(rmt_config(&rmt_conf));
 		ESP_ERROR_CHECK(rmt_driver_install(rmt_conf.channel, 0, 0));
 	}
+
+	/* button debounce timer */
+	board_button_timer = xTimerCreate("btn", pdMS_TO_TICKS(CONFIG_BOARD_BUTTON_DEBOUNCE), pdFALSE, NULL, button_timer_cb);
+	ESP_ERROR_CHECK(board_button_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
+	/* button pin ISR */
+	ESP_ERROR_CHECK(gpio_set_pull_mode(CONFIG_BOARD_BUTTON_GPIO, GPIO_PULLUP_ONLY));
+	ESP_ERROR_CHECK(gpio_set_intr_type(CONFIG_BOARD_BUTTON_GPIO, GPIO_INTR_NEGEDGE));
+	ESP_ERROR_CHECK(gpio_install_isr_service(0));
+	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_BUTTON_GPIO, button_gpio_isr, NULL));
 }
 
 /* buzzer on/off control */
@@ -254,4 +273,25 @@ uint32_t board_supply_meas(void)
 	sum /= VM_AVG_CNT;
 	cal_out = esp_adc_cal_raw_to_voltage(sum, &adc1_chars);
 	return((cal_out*VM_GAIN)>>10);
+}
+
+/* called at falling edge */
+static void button_gpio_isr(void* arg)
+{
+	BaseType_t need_yield = pdFALSE;
+
+	xTimerStartFromISR(board_button_timer, &need_yield);
+	if(need_yield)
+		portYIELD_FROM_ISR();
+}
+
+static void button_timer_cb(TimerHandle_t timer)
+{
+	(void)timer;
+
+	/* send event if still pressed */
+	if(!gpio_get_level(CONFIG_BOARD_BUTTON_GPIO))
+	{
+		ESP_ERROR_CHECK(esp_event_post_to(board_event_loop, BOARD_EVENT, BOARD_EVENT_BUTTON, NULL, 0, 0));
+	}
 }

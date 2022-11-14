@@ -173,5 +173,19 @@ menu "Board Library"
         default 6
         help
             ADC channel number c(ADC1_CHxx) connected to voltage divider.
-            
+
+    config BOARD_BUTTON_GPIO
+        int "Button GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
+        default 15
+        help
+            GPIO number (IOxx) connected to button.
+
+    config BOARD_BUTTON_DEBOUNCE
+        int "Button debounce time [ms]"
+        range 10 1000
+        default 30
+        help
+            Button state will be sampled again after this time.
+
 endmenu

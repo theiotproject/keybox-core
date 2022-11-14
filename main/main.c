@@ -56,7 +56,7 @@ void app_main(void)
 	ESP_ERROR_CHECK(ret);
 	/* storage for produced reports */
 	app_fring_partition = esp_partition_find_first(0x40, 0x00, "flash_ring");
-	board_init(); /* all low level inits */
+	board_init(app_event_loop); /* all low level inits */
 	ui_start();
 	wifi_init(); /* connects to network if configured in the NVS */
 	rtcd_start(&rtcd_conf); /* acquires time */
@@ -244,6 +244,12 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				ui_rg_beep_open(UI_WIEGAND);
 				board_wiegand_send(wiegand_frame, wiegand_len);
 			}
+			break;
+		case BOARD_EVENT_BUTTON:
+			report_data.when = 0;
+			report_data.kind = REPORT_KIND_BUTTON;
+			report_add(&report_data);
+			ui_rg_beep_open(UI_ACCESS_GRANTED);
 			break;
 		}
 		return;
