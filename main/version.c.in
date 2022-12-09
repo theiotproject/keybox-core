@@ -1,0 +1,2 @@
+#define FW_VER "@GIT_VERSION@"
+const char g_version[] = FW_VER;

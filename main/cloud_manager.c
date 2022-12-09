@@ -7,6 +7,7 @@
 #include "nvs.h"
 #include "golioth.h"
 #include "cloud_manager.h"
+#include "version.h"
 
 #define CLOUD_EV_CONNECT_BIT BIT(0)
 /* report string formats */
@@ -119,6 +120,7 @@ void cloud_join(char *id, char *psk)
 	for(i=0; i<len; i++)
 		golioth_rpc_register(cloud_client, cloud_numeric_rpcs[i].name, cloud_numeric_cb, NULL);
 	golioth_rpc_register(cloud_client, "wiegand", cloud_wiegand_cb, NULL);
+	golioth_fw_update_init(cloud_client, g_version);
 	ESP_LOGI(cloud_tag, "Joining as %s", cloud_id);
 	xSemaphoreGive(cloud_mutex);
 	return;

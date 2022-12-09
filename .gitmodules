@@ -7,3 +7,6 @@
 [submodule "third_party/golioth-esp-idf-sdk"]
 	path = third_party/golioth-esp-idf-sdk
 	url = https://github.com/golioth/golioth-esp-idf-sdk.git
+[submodule "cmake-modules"]
+	path = cmake-modules
+	url = git@github.com:rpavlik/cmake-modules.git
