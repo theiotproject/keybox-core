@@ -76,6 +76,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	size_t field_len;
 	char *wifi_ssid;
 	char *cloud_id;
+    char *magic;
 	uint8_t wiegand_len;
 	uint64_t wiegand_frame;
 	struct timeval sys_time;
@@ -188,6 +189,23 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				ui_rg_beep_open(UI_SET_CLOUD);
 				return;
 			}
+            if(!strcmp(field, "conf"))
+            {
+                field = strtok(NULL, ",");
+                if(!field)
+                    return;
+                field_len = strnlen(field, 37);
+                if(!field_len || field_len == CONF_MAGIC_MAX_LEN)
+                    return;
+                magic = malloc(field_len + 1);
+                ESP_ERROR_CHECK(magic == NULL ? ESP_ERR_NO_MEM : ESP_OK);
+                strcpy(magic, field);
+                //nvs_handle handle;
+                //ESP_ERROR_CHECK(nvs_set_str(handle, "magic", magic));
+                ESP_LOGI("conf tag", "Conf value %s", magic);
+                free(magic);
+                ui_rg_beep_open(UI_SET_CLOUD);
+            }
 			if(!strcmp(field, "led")) /* example: led,48 */
 			{
 				field = strtok(NULL, ",");
