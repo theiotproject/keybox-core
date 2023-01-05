@@ -21,6 +21,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 
 const esp_partition_t *app_fring_partition;
 static esp_event_loop_handle_t app_event_loop;
+static nvs_handle_t conf_nvs_handle;
 
 void app_main(void)
 {
@@ -63,6 +64,16 @@ void app_main(void)
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
+    ESP_ERROR_CHECK(nvs_open("conf", NVS_READWRITE, &conf_nvs_handle));
+    char magic[40];
+    size_t magic_len = 0;
+    esp_err_t result;
+    result = nvs_get_str(conf_nvs_handle, "magic", NULL,&magic_len);
+    if (result != ESP_OK || magic_len > sizeof(magic))
+        return;
+    if(nvs_get_str(conf_nvs_handle, "magic", magic,&magic_len) != ESP_OK)
+        return;
+    ESP_LOGI("magic", ":%s", magic);
 }
 
 /* executed by the application loop task */
@@ -76,7 +87,6 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	size_t field_len;
 	char *wifi_ssid;
 	char *cloud_id;
-    char *magic;
 	uint8_t wiegand_len;
 	uint64_t wiegand_frame;
 	struct timeval sys_time;
@@ -194,17 +204,25 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
                 field = strtok(NULL, ",");
                 if(!field)
                     return;
-                field_len = strnlen(field, 37);
-                if(!field_len || field_len == CONF_MAGIC_MAX_LEN)
+                field_len = strlen(field);
+                if(!field_len || field_len != 36)
                     return;
-                magic = malloc(field_len + 1);
-                ESP_ERROR_CHECK(magic == NULL ? ESP_ERR_NO_MEM : ESP_OK);
-                strcpy(magic, field);
-                //nvs_handle handle;
-                //ESP_ERROR_CHECK(nvs_set_str(handle, "magic", magic));
-                ESP_LOGI("conf tag", "Conf value %s", magic);
-                free(magic);
-                ui_rg_beep_open(UI_SET_CLOUD);
+                ESP_LOGI("Dobry","magic %s", field);
+                //magic = malloc(field_len + 1);
+                //ESP_ERROR_CHECK(magic == NULL ? ESP_ERR_NO_MEM : ESP_OK);
+                //strcpy(magic, field);
+                //char *read_magic= malloc(field_len+1);
+                //ESP_LOGI("przed open","dziala");
+                //ESP_ERROR_CHECK(nvs_set_str(conf_nvs_handle, "magic", magic));
+                //ESP_LOGI("conf tag", "Conf value %s", magic);
+                ESP_ERROR_CHECK(nvs_set_str(conf_nvs_handle, "magic", field));
+                //free(magic);
+                ESP_ERROR_CHECK(nvs_commit(conf_nvs_handle));
+                //field_len = 0;
+                //ESP_ERROR_CHECK(nvs_get_str(conf_nvs_handle, "magic", read_magic,&field_len));
+                //ESP_LOGI("read magic", "Read magic value %s ,%i", read_magic, field_len);
+                ui_rg_beep_open(UI_ACCESS_GRANTED);
+                //free(read_magic);
             }
 			if(!strcmp(field, "led")) /* example: led,48 */
 			{
