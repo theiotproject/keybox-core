@@ -22,7 +22,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 const esp_partition_t *app_fring_partition;
 static esp_event_loop_handle_t app_event_loop;
 static nvs_handle_t conf_nvs_handle;
-
+char magic[40];
 void app_main(void)
 {
 	esp_err_t ret;
@@ -223,6 +223,32 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
                 //ESP_LOGI("read magic", "Read magic value %s ,%i", read_magic, field_len);
                 ui_rg_beep_open(UI_ACCESS_GRANTED);
                 //free(read_magic);
+            }
+            if(!strcmp(field, "magic"))
+            {
+                ESP_LOGI("got", " magic");
+                field = strtok(NULL, ",");
+                if(!field)
+                    return;
+                field_len = strlen(field);
+                if(!field_len || field_len != 36)
+                    return;
+                report_data.when = 0;
+                report_data.kind = REPORT_KIND_OPEN;
+                if(strcmp(field, magic))
+                {
+                    report_data.data.open.access = true;
+                    report_add(&report_data);
+                    ui_rg_beep_open(UI_ACCESS_GRANTED);
+                    ESP_LOGI("Access", "granted using code: %s", field);
+                }
+                else
+                {
+                    report_data.data.open.access = false;
+                    report_add(&report_data);
+                    ui_rg_beep_open(UI_ACCESS_DENIED);
+                    ESP_LOGI("Access", "denied using code: %s", magic);
+                }
             }
 			if(!strcmp(field, "led")) /* example: led,48 */
 			{
