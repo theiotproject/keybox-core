@@ -4,4 +4,5 @@ idf_component_register(SRCS "main.c"
                             "cloud_manager.c"
                             "report_manager.c"
                             "version.c"
+                            "access_manager.c"
                     INCLUDE_DIRS ".")
