@@ -1,7 +1,7 @@
 #include "access_manager.h"
 
 static const char *acces_tag = "access";
-static nvs_handle_t conf_nvs_handle;
+static conf_nvs_handle;
 esp_err_t result;
 report_data_t report_data;
 void access_init(char *magic)
@@ -22,8 +22,8 @@ void access_init(char *magic)
 }
 void check_magic(char *field, char *magic)
 {
+    ESP_LOGI(acces_tag, "field %s", field);
     ESP_LOGI(acces_tag, "got magic");
-    field = strtok(NULL, ",");
     ESP_LOGI(acces_tag, "dupa1234");
     if(!field)
         return;
@@ -51,7 +51,7 @@ void check_magic(char *field, char *magic)
 }
 void set_magic(char *field)
 {
-    field = strtok(NULL, ",");
+    ESP_LOGI("set magic","%s",field );
     if(!field)
         return;
     size_t field_len = strlen(field);
