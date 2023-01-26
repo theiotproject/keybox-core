@@ -22,7 +22,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 
 const esp_partition_t *app_fring_partition;
 static esp_event_loop_handle_t app_event_loop;
-char *magic;
+
 void app_main(void)
 {
 	esp_err_t ret;
@@ -198,7 +198,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
             if(!strcmp(field, "magic"))
             {
                 field = strtok(NULL, ",");
-                check_magic(field, magic);
+                check_magic(field);
             }
 			if(!strcmp(field, "led")) /* example: led,48 */
 			{

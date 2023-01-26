@@ -4,7 +4,7 @@ static const char *acces_tag = "access";
 static conf_nvs_handle;
 esp_err_t result;
 report_data_t report_data;
-void access_init(char *magic)
+void access_init()
 {
     ESP_LOGI(acces_tag, "dupa123");
     ESP_ERROR_CHECK(nvs_open(acces_tag, NVS_READWRITE, &conf_nvs_handle));
@@ -20,7 +20,7 @@ void access_init(char *magic)
         return;
     ESP_LOGI(acces_tag, "magic: %s", magic);
 }
-void check_magic(char *field, char *magic)
+void check_magic(char *field)
 {
     ESP_LOGI(acces_tag, "field %s", field);
     ESP_LOGI(acces_tag, "got magic");
