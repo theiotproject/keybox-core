@@ -9,7 +9,6 @@
 #ifndef KEY_SCANNER_ESP32_ACCESS_MANAGER_H
 #define KEY_SCANNER_ESP32_ACCESS_MANAGER_H
 
-extern char *magic;
 
 void set_magic(char *field);
 void access_init();

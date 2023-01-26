@@ -64,7 +64,7 @@ void app_main(void)
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
-    access_init(magic);
+    access_init();
 }
 
 /* executed by the application loop task */

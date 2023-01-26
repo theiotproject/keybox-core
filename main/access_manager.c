@@ -1,18 +1,28 @@
 #include "access_manager.h"
 
 static const char *acces_tag = "access";
-static conf_nvs_handle;
+static nvs_handle_t conf_nvs_handle;
 esp_err_t result;
 report_data_t report_data;
+char magic [40];
 void access_init()
 {
     ESP_LOGI(acces_tag, "dupa123");
-    ESP_ERROR_CHECK(nvs_open(acces_tag, NVS_READWRITE, &conf_nvs_handle));
+    esp_err_t result = nvs_open(acces_tag, NVS_READWRITE, &conf_nvs_handle);
+    if(result != ESP_OK){
+        ESP_LOGE(acces_tag, "Error opening NVS %d",result);
+        return;
+    }
     size_t magic_len = 0;
     ESP_LOGI(acces_tag, "1");
     result = nvs_get_str(conf_nvs_handle, "magic", NULL,&magic_len);
+    if(result != ESP_OK){
+        ESP_LOGE(acces_tag, "Error getting magic len %d",result);
+        nvs_close(conf_nvs_handle);
+        return;
+    }
     ESP_LOGI(acces_tag, "resultt: %d", result);
-    ESP_LOGI(acces_tag, "size: %d", magic_len);
+    ESP_LOGI(acces_tag, "size: %zu", magic_len);
     ESP_LOGI(acces_tag, "magic size: %d", sizeof(magic));
     if (result != ESP_OK || magic_len > sizeof(magic))
         return;
