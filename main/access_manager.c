@@ -7,7 +7,6 @@ report_data_t report_data;
 char magic [40];
 void access_init()
 {
-	ESP_LOGI(acces_tag, "dupa123");
 	esp_err_t result = nvs_open(acces_tag, NVS_READWRITE, &conf_nvs_handle);
 	if(result != ESP_OK){
 		ESP_LOGE(acces_tag, "Error opening NVS %d",result);
@@ -34,16 +33,13 @@ void access_check_magic(char *field)
 {
 	ESP_LOGI(acces_tag, "field %s", field);
 	ESP_LOGI(acces_tag, "got magic");
-	ESP_LOGI(acces_tag, "dupa1234");
 	if(!field)
 		return;
 	size_t field_len = strlen(field);
-	ESP_LOGI(acces_tag, "dupa12345");
 	if(!field_len || field_len != 36)
 		return;
 	report_data.when = 0;
 	report_data.kind = REPORT_KIND_OPEN;
-	ESP_LOGI(acces_tag, "dupa123456");
 	if(strcmp(field, magic))
 	{
 		report_data.data.open.access = true;
