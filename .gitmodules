@@ -10,3 +10,6 @@
 [submodule "cmake-modules"]
 	path = cmake-modules
 	url = git@github.com:rpavlik/cmake-modules.git
+[submodule "components/mecfmt"]
+	path = components/mecfmt
+	url = git@github.com:theiotproject/mecfmt.git
