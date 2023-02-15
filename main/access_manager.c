@@ -30,7 +30,7 @@ void access_init()
 		return;
 	ESP_LOGI(acces_tag, "magic: %s", magic);
 }
-void check_magic(char *field)
+void access_check_magic(char *field)
 {
 	ESP_LOGI(acces_tag, "field %s", field);
 	ESP_LOGI(acces_tag, "got magic");
@@ -59,7 +59,7 @@ void check_magic(char *field)
 		ESP_LOGI(acces_tag, "Access denied using code: %s", magic);
 	}
 }
-void set_magic(char *field)
+void access_set_magic(char *field)
 {
 	ESP_LOGI("set magic","%s",field );
 	if(!field)

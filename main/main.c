@@ -193,12 +193,12 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			if(!strcmp(field, "conf"))
 			{
 				field = strtok(NULL, ",");
-				set_magic(field);
+				access_set_magic(field);
 			}
 			if(!strcmp(field, "magic"))
 			{
 				field = strtok(NULL, ",");
-				check_magic(field);
+				access_check_magic(field);
 			}
 			if(!strcmp(field, "led")) /* example: led,48 */
 			{

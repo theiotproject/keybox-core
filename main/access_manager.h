@@ -10,8 +10,8 @@
 #define KEY_SCANNER_ESP32_ACCESS_MANAGER_H
 
 
-void set_magic(char *field);
 void access_init();
-void check_magic(char *field);
+void access_set_magic(char *field);
+void access_check_magic(char *field);
 
 #endif //KEY_SCANNER_ESP32_ACCESS_MANAGER_H
