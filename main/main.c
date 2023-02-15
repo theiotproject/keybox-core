@@ -64,7 +64,7 @@ void app_main(void)
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
-    access_init();
+	access_init();
 }
 
 /* executed by the application loop task */
@@ -190,16 +190,16 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				ui_rg_beep_open(UI_SET_CLOUD);
 				return;
 			}
-            if(!strcmp(field, "conf"))
-            {
-                field = strtok(NULL, ",");
-                set_magic(field);
-            }
-            if(!strcmp(field, "magic"))
-            {
-                field = strtok(NULL, ",");
-                check_magic(field);
-            }
+			if(!strcmp(field, "conf"))
+			{
+				field = strtok(NULL, ",");
+				set_magic(field);
+			}
+			if(!strcmp(field, "magic"))
+			{
+				field = strtok(NULL, ",");
+				check_magic(field);
+			}
 			if(!strcmp(field, "led")) /* example: led,48 */
 			{
 				field = strtok(NULL, ",");
