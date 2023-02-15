@@ -1,4 +1,9 @@
 #include "access_manager.h"
+#include "report_manager.h"
+#include "esp_log.h"
+#include "nvs.h"
+#include "ui_manager.h"
+#include "string.h"
 
 static const char *acces_tag = "access";
 static nvs_handle_t conf_nvs_handle;
@@ -20,9 +25,6 @@ void access_init()
 		nvs_close(conf_nvs_handle);
 		return;
 	}
-	ESP_LOGI(acces_tag, "resultt: %d", result);
-	ESP_LOGI(acces_tag, "size: %zu", magic_len);
-	ESP_LOGI(acces_tag, "magic size: %d", sizeof(magic));
 	if (result != ESP_OK || magic_len > sizeof(magic))
 		return;
 	if(nvs_get_str(conf_nvs_handle, "magic", magic,&magic_len) != ESP_OK)
@@ -31,7 +33,6 @@ void access_init()
 }
 void access_check_magic(char *field)
 {
-	ESP_LOGI(acces_tag, "field %s", field);
 	ESP_LOGI(acces_tag, "got magic");
 	if(!field)
 		return;
@@ -40,7 +41,7 @@ void access_check_magic(char *field)
 		return;
 	report_data.when = 0;
 	report_data.kind = REPORT_KIND_OPEN;
-	if(strcmp(field, magic))
+	if(strcmp(field, magic) == 0)
 	{
 		report_data.data.open.access = true;
 		report_add(&report_data);
@@ -66,5 +67,4 @@ void access_set_magic(char *field)
 	ESP_LOGI(acces_tag,"dobry magic %s", field);
 	ESP_ERROR_CHECK(nvs_set_str(conf_nvs_handle, "magic", field));
 	ESP_ERROR_CHECK(nvs_commit(conf_nvs_handle));
-	ui_rg_beep_open(UI_ACCESS_GRANTED);
 }
