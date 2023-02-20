@@ -15,6 +15,7 @@
 #include "cloud_manager.h"
 #include "report_manager.h"
 #include "access_manager.h"
+#include "mecfmt.h"
 
 static const char *app_tag = "app";
 
@@ -103,27 +104,26 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			break;
 		case BOARD_EVENT_NEW_CODE: ;/* process code */
 			char *ev_data = (char*) event_data;
-			char *data_to_parse = malloc(strlen((const char *)ev_data) + 1);
-			if (data_to_parse != NULL)
+			char *data_to_parse = strdup(ev_data);
+			if (!data_to_parse)
 			{
-				strcpy(data_to_parse, (const char *) event_data);
+				return;
 			}
 			field = strtok(event_data, ",");
-			ESP_LOGI(app_tag,"length of ev_data: %i and field %i", strlen(ev_data), strlen(field));
 			if(strlen(ev_data) == strlen(data_to_parse))
 			{
-			ESP_LOGI(app_tag, "Data commited to strip %s and field: %s", ev_data, field);
-
 				field = strtok(event_data, ":");
-				if (!field)
+				if(field && !strcmp(field, "OPEN"))
 				{
-					free(data_to_parse);
-					return;
-				}
-				if(!strcmp(field, "OPEN"))
-				{
-					//ev_data = strtok(NULL, ":");
-					ESP_LOGI(app_tag, "Data commited to mecfmt %s", data_to_parse);
+					char valueString[128];
+					mecfmt_value_t value;
+					const char *keys[] = {"ID", "VF", "VT", "L", "S"};
+					for (unsigned int i = 0; i < sizeof(keys) / sizeof(char *); i++) {
+						value = mecfmt_get_velue(data_to_parse, keys[i]);
+						mecfmt_value_to_string(&value, valueString);
+						ESP_LOGI(app_tag, "Got key value %s", valueString);
+					}
+
 					free(data_to_parse);
 					return;
 				}
