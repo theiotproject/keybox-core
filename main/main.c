@@ -101,7 +101,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				strcpy(reader_info, event_data);
 			}
 			break;
-		case BOARD_EVENT_NEW_CODE: /* process code */
+		case BOARD_EVENT_NEW_CODE: ;/* process code */
 			char *ev_data = (char*) event_data;
 			char *data_to_parse = malloc(strlen((const char *)ev_data) + 1);
 			if (data_to_parse != NULL)
