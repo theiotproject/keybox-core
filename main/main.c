@@ -102,9 +102,33 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			}
 			break;
 		case BOARD_EVENT_NEW_CODE: /* process code */
+			char *ev_data = (char*) event_data;
+			char *data_to_parse = malloc(strlen((const char *)ev_data) + 1);
+			if (data_to_parse != NULL)
+			{
+				strcpy(data_to_parse, (const char *) event_data);
+			}
 			field = strtok(event_data, ",");
-			if(!field)
-				return;
+			ESP_LOGI(app_tag,"length of ev_data: %i and field %i", strlen(ev_data), strlen(field));
+			if(strlen(ev_data) == strlen(data_to_parse))
+			{
+			ESP_LOGI(app_tag, "Data commited to strip %s and field: %s", ev_data, field);
+
+				field = strtok(event_data, ":");
+				if (!field)
+				{
+					free(data_to_parse);
+					return;
+				}
+				if(!strcmp(field, "OPEN"))
+				{
+					//ev_data = strtok(NULL, ":");
+					ESP_LOGI(app_tag, "Data commited to mecfmt %s", data_to_parse);
+					free(data_to_parse);
+					return;
+				}
+				free(data_to_parse);
+			}
 			if(!strcmp(field, "factory")) /* example: factory,reset */
 			{
 				field = strtok(NULL, ",");
