@@ -4,6 +4,7 @@
 #include "nvs.h"
 #include "ui_manager.h"
 #include "string.h"
+#include <time.h>
 
 static const char *acces_tag = "access";
 static nvs_handle_t conf_nvs_handle;
@@ -67,4 +68,19 @@ void access_set_magic(char *field)
 	ESP_LOGI(acces_tag,"dobry magic %s", field);
 	ESP_ERROR_CHECK(nvs_set_str(conf_nvs_handle, "magic", field));
 	ESP_ERROR_CHECK(nvs_commit(conf_nvs_handle));
+}
+bool access_validate_code(struct key_value_pair pair)
+{
+	time_t current_time = time(NULL);
+	ESP_LOGI(acces_tag,"Current Unix timestamp: %ld\n", (long)current_time);
+	ESP_LOGI(acces_tag, "ID: %s, VF: %s, VT: %s, L: %s, S: %s\n", pair.ID, pair.VF, pair.VT, pair.L, pair.S);
+	long timestamp_vf_string = atol(pair.VF);
+	long timestamp_vt_string = atol(pair.VT);
+	time_t timestamp_vf_unix = (time_t)timestamp_vf_string;
+	time_t timestamp_vt_unix = (time_t)timestamp_vt_string;
+	ESP_LOGI(acces_tag, "timestampy: %ld ||| %ld", timestamp_vf_unix, timestamp_vt_unix);
+	if(current_time >= timestamp_vf_unix && current_time <= timestamp_vt_unix){
+		return true;
+	}
+	return false;
 }
