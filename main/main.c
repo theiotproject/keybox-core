@@ -85,6 +85,14 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	char *time_str;
 	report_data_t report_data;
 	(void)event_handler_arg;
+	struct key_value_pair
+	{
+		char *ID;
+		char *VF;
+		char *VT;
+		char *L;
+		char *S;
+	};
 
 	if(event_base == BOARD_EVENT)
 	{
@@ -115,6 +123,8 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				field = strtok(event_data, ":");
 				if(field && !strcmp(field, "OPEN"))
 				{
+
+					struct key_value_pair pairs;
 					char valueString[128];
 					mecfmt_value_t value;
 					const char *keys[] = {"ID", "VF", "VT", "L", "S"};
@@ -122,8 +132,25 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 						value = mecfmt_get_velue(data_to_parse, keys[i]);
 						mecfmt_value_to_string(&value, valueString);
 						ESP_LOGI(app_tag, "Got key value %s", valueString);
+						switch (i) {
+							case 0:
+								pairs.ID = strdup(valueString);
+								break;
+							case 1:
+								pairs.VF = strdup(valueString);
+								break;
+							case 2:
+								pairs.VT = strdup(valueString);
+								break;
+							case 3:
+								pairs.L = strdup(valueString);
+								break;
+							case 4:
+								pairs.S = strdup(valueString);;
+								break;
+						}
 					}
-
+					ESP_LOGI(app_tag, "ID: %s, VF: %s, VT: %s, L: %s, S: %s\n", pairs.ID, pairs.VF, pairs.VT, pairs.L, pairs.S);
 					free(data_to_parse);
 					return;
 				}
