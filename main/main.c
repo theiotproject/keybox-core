@@ -115,12 +115,18 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				field = strtok(event_data, ":");
 				if(field && !strcmp(field, "OPEN"))
 				{
+					report_data.when = 0;
+					report_data.kind = REPORT_KIND_OPEN;
 					if(access_process_code_open(data_to_parse))
 					{
+						report_data.data.open.access = true;
+						report_add(&report_data);
 						ui_rg_beep_open(UI_ACCESS_GRANTED);
 					}
 					else
 					{
+						report_data.data.open.access = false;
+						report_add(&report_data);
 						ui_rg_beep_open(UI_ACCESS_DENIED);
 					}
 					free(data_to_parse);
