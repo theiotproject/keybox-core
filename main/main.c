@@ -15,7 +15,6 @@
 #include "cloud_manager.h"
 #include "report_manager.h"
 #include "access_manager.h"
-#include "mecfmt.h"
 
 static const char *app_tag = "app";
 
@@ -116,34 +115,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				field = strtok(event_data, ":");
 				if(field && !strcmp(field, "OPEN"))
 				{
-
-					struct key_value_pair pairs;
-					char valueString[128];
-					mecfmt_value_t value;
-					const char *keys[] = {"ID", "VF", "VT", "L", "S"};
-					for (unsigned int i = 0; i < sizeof(keys) / sizeof(char *); i++) {
-						value = mecfmt_get_velue(data_to_parse, keys[i]);
-						mecfmt_value_to_string(&value, valueString);
-						switch (i) {
-							case 0:
-								pairs.ID = strdup(valueString);
-								break;
-							case 1:
-								pairs.VF = strdup(valueString);
-								break;
-							case 2:
-								pairs.VT = strdup(valueString);
-								break;
-							case 3:
-								pairs.L = strdup(valueString);
-								break;
-							case 4:
-								pairs.S = strdup(valueString);;
-								break;
-						}
-					}
-					//ESP_LOGI(app_tag, "ID: %s, VF: %s, VT: %s, L: %s, S: %s\n", pairs.ID, pairs.VF, pairs.VT, pairs.L, pairs.S);
-					if(access_validate_code(pairs))
+					if(access_process_code_open(data_to_parse))
 					{
 						ui_rg_beep_open(UI_ACCESS_GRANTED);
 					}
