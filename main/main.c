@@ -110,7 +110,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				return;
 			}
 			field = strtok(event_data, ",");
-			if(data_len == strlen(data_to_parse))
+			if(data_len == strlen(field))
 			{
 				field = strtok(event_data, ":");
 				if(field && !strcmp(field, "OPEN"))
@@ -226,8 +226,25 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			}
 			if(!strcmp(field, "magic"))
 			{
+				ESP_LOGI(app_tag,"%s", field);
 				field = strtok(NULL, ",");
-				access_check_magic(field);
+				report_data.when = 0;
+				report_data.kind = REPORT_KIND_MAGIC;
+				if(access_check_magic(field))
+				{
+					ESP_LOGI(app_tag,"entered magic");
+					report_data.data.magic.access = true;
+					report_add(&report_data);
+					ui_rg_beep_open(UI_ACCESS_GRANTED);
+					ESP_LOGI(app_tag, "Access granted using code: %s", field);
+				} else
+				{
+					ESP_LOGI(app_tag,"entered !magic");
+					report_data.data.magic.access = false;
+					report_add(&report_data);
+					ui_rg_beep_open(UI_ACCESS_DENIED);
+					ESP_LOGI(app_tag, "Access denied using code: %s", field);
+				}
 			}
 			if(!strcmp(field, "led")) /* example: led,48 */
 			{

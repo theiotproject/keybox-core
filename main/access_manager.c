@@ -39,29 +39,21 @@ void access_init()
 		return;
 	ESP_LOGI(acces_tag, "magic: %s", magic);
 }
-void access_check_magic(char *field)
+bool access_check_magic(char *field)
 {
 	ESP_LOGI(acces_tag, "got magic");
 	if(!field)
-		return;
+		return false;
 	size_t field_len = strlen(field);
 	if(!field_len || field_len != 36)
-		return;
-	report_data.when = 0;
-	report_data.kind = REPORT_KIND_OPEN;
+		return false;
 	if(strcmp(field, magic) == 0)
 	{
-		report_data.data.open.access = true;
-		report_add(&report_data);
-		ui_rg_beep_open(UI_ACCESS_GRANTED);
-		ESP_LOGI(acces_tag, "Access granted using code: %s", field);
+		return true;
 	}
 	else
 	{
-		report_data.data.open.access = false;
-		report_add(&report_data);
-		ui_rg_beep_open(UI_ACCESS_DENIED);
-		ESP_LOGI(acces_tag, "Access denied using code: %s", magic);
+		return false;
 	}
 }
 void access_set_magic(char *field)
