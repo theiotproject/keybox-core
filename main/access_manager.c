@@ -14,9 +14,9 @@ report_data_t report_data;
 char magic [40];
 typedef struct
 {
-	char *VF;
-	char *VT;
-}valid_period;
+	time_t from;
+	time_t to;
+}time_period_t;
 
 void access_init()
 {
@@ -68,46 +68,30 @@ void access_set_magic(char *field)
 	ESP_ERROR_CHECK(nvs_set_str(conf_nvs_handle, "magic", field));
 	ESP_ERROR_CHECK(nvs_commit(conf_nvs_handle));
 }
-bool check_validity_period(valid_period period)
+bool is_period_valid(time_period_t period)
 {
 	time_t current_time = time(NULL);
 	ESP_LOGI(acces_tag,"Current Unix timestamp: %ld\n", (long)current_time);
-	ESP_LOGI(acces_tag, "VF: %s, VT: %s\n", period.VF, period.VT);
-	long timestamp_vf_string = atol(period.VF);
-	long timestamp_vt_string = atol(period.VT);
-	time_t timestamp_vf_unix = (time_t)timestamp_vf_string;
-	time_t timestamp_vt_unix = (time_t)timestamp_vt_string;
-	ESP_LOGI(acces_tag, "timestampy: %ld ||| %ld", timestamp_vf_unix, timestamp_vt_unix);
-	if(current_time >= timestamp_vf_unix && current_time <= timestamp_vt_unix){
+	ESP_LOGI(acces_tag, "VF: %ld, VT: %ld\n", (long)period.from, (long)period.to);
+
+	if(current_time >= period.from && current_time <= period.to){
 		return true;
 	}
 	return false;
 }
 bool access_process_code_open(char *data)
 {
-	char *data1= strdup(data);
-	valid_period period;
-	char valueString[128];
+	time_period_t period;
+	char valueString[sizeof("9223372036854775807")];
 	mecfmt_value_t value;
-	const char *keys[] = { "VF", "VT"};
-	for (unsigned int i = 0; i < sizeof(keys) / sizeof(char *); i++) {
-		value = mecfmt_get_velue(data1, keys[i]);
-		mecfmt_value_to_string(&value, valueString);
-		switch (i) {
-			case 0:
-				period.VF = strdup(valueString);
-				break;
-			case 1:
-				period.VT = strdup(valueString);
-				break;
-		}
-	}
-	if(check_validity_period(period)){
-		free(period.VF);
-		free(period.VT);
-		return true;
-	}
-	free(period.VF);
-	free(period.VT);
-	return false;
+
+	value = mecfmt_get_velue(data, "VF");
+	mecfmt_value_to_string(&value, valueString);
+	period.from = (time_t)(atol(valueString));
+
+	value = mecfmt_get_velue(data, "VT");
+	mecfmt_value_to_string(&value, valueString);
+	period.to = (time_t)(atol(valueString));
+
+	return is_period_valid(period);
 }

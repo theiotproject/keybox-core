@@ -105,6 +105,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 		{
 			int data_len = strlen((char*)event_data);
 			char *data_to_parse = strdup(event_data);
+			//strncmp((char*)event_data, "OPEN:", sizeof("OPEN:"));
 			if (!data_to_parse)
 			{
 				return;
