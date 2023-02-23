@@ -107,5 +107,7 @@ bool access_process_code_open(char *data)
 		free(period.VT);
 		return true;
 	}
+	free(period.VF);
+	free(period.VT);
 	return false;
 }
