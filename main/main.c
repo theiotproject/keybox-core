@@ -102,15 +102,16 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				strcpy(reader_info, event_data);
 			}
 			break;
-		case BOARD_EVENT_NEW_CODE: ;/* process code */
-			char *ev_data = (char*) event_data;
-			char *data_to_parse = strdup(ev_data);
+		case BOARD_EVENT_NEW_CODE: /* process code */
+		{
+			int data_len = strlen((char*)event_data);
+			char *data_to_parse = strdup(event_data);
 			if (!data_to_parse)
 			{
 				return;
 			}
 			field = strtok(event_data, ",");
-			if(strlen(ev_data) == strlen(data_to_parse))
+			if(data_len == strlen(data_to_parse))
 			{
 				field = strtok(event_data, ":");
 				if(field && !strcmp(field, "OPEN"))
@@ -307,6 +308,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				board_wiegand_send(wiegand_frame, wiegand_len);
 			}
 			break;
+			}
 		case BOARD_EVENT_BUTTON:
 			report_data.when = 0;
 			report_data.kind = REPORT_KIND_BUTTON;
