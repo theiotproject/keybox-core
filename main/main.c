@@ -123,6 +123,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 						report_data.data.open.access = true;
 						report_add(&report_data);
 						ui_rg_beep_open(UI_ACCESS_GRANTED);
+                        board_wiegand_send(0x2abcd, 26);
 					}
 					else
 					{

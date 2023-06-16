@@ -233,6 +233,7 @@ void board_wiegand_send(uint64_t frame, uint8_t len)
 	/* wait for completion */
 	for(ch=DO_RMT_CH; ch<=D1_RMT_CH; ch++)
 		ESP_ERROR_CHECK(rmt_wait_tx_done(ch, portMAX_DELAY));
+    ESP_LOGI("wienagd sender", "Sending frame: %" PRIu64 ", Length: %u\n", frame, len);
 }
 
 /* blocks until completion, result [mV] */
