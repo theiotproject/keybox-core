@@ -37,7 +37,7 @@ static const uint8_t gm65_config[][2] = {
 		{0x62, 0x10}, /* set prefix length to 1 character */
 		{0x63, '\n'}, /* set prefix character to LF */
 		{0x60, 0x09}, /* enable prefix and CR end character */
-		{0x00, 0x07}, /* switch to sensing mode, light enable, no aim */
+		{0x00, 0x03}, /* switch to sensing mode, no light, no aim */
 		{0x0f, 0x32}, /* set sensitivity */
 		{0x10, 0x0A}, /* set sensitivity */
 		{0x04, 2}, /* stabilization time: 0.2s */
