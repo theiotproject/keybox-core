@@ -16,6 +16,8 @@
 #define CLOUD_FORM_TAMPER(r) "%llu", (uint64_t)(r)->when
 #define CLOUD_FORM_BUTTON(r) "%llu", (uint64_t)(r)->when
 #define CLOUD_FORM_MAGIC(r) "%llu,%c", (uint64_t)(r)->when, (char)(r)->data.magic.access + '0'
+//added
+#define CLOUD_FORM_NEWCARD(r) "%llu,%c", (uint64_t)(r)->when, (char)(r)->data.magic.access + '0'
 
 typedef struct {
 		const char *name;
@@ -45,7 +47,8 @@ static const char *cloud_report_paths[REPORT_KIND_MAX] = {
 		"wiegand",
 		"tamper",
 		"button",
-		"magic"
+		"magic",
+        "newcard"
 };
 /* events generated in this module */
 ESP_EVENT_DEFINE_BASE(CLOUD_EVENT);
@@ -69,7 +72,7 @@ void cloud_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(cloud_event_group == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 	ESP_ERROR_CHECK(nvs_open(cloud_tag, NVS_READWRITE, &cloud_nvs_handle));
 	cloud_event_loop = event_loop;
-	cloud_join(NULL, NULL);
+	cloud_join("20230725123621-espidf-test@keybox", "8d72c96908c8d101b03be251a1438fa2");
 }
 
 /* updates service configuration */
@@ -329,7 +332,12 @@ static golioth_status_t cloud_report_exec(report_data_t *report)
 		buf = malloc (len+1);
 		sprintf(buf, CLOUD_FORM_MAGIC(report));
 		break;
-	default:
+    case REPORT_KIND_NEWCARD:
+        len = snprintf(NULL, 0, CLOUD_FORM_NEWCARD(report));
+        buf = malloc (len+1);
+        sprintf(buf, CLOUD_FORM_NEWCARD(report));
+        break;
+    default:
 		ESP_LOGW(cloud_tag, "Skipped unsupported report kind %u", (uint32_t)report->kind);
 		return(GOLIOTH_OK);
 	}
