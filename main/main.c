@@ -101,10 +101,8 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			}
 		case BOARD_EVENT_BUTTON:
 			report_data.when = 0;
-			report_data.kind = REPORT_KIND_BUTTON;
+			report_data.kind = REPORT_KIND_NEWCARD;
 			report_add(&report_data);
-			ui_rg_beep_open(UI_ACCESS_GRANTED);
-			break;
 		}
 		return;
 	}
