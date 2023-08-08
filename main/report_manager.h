@@ -4,6 +4,9 @@
 #include <time.h>
 #include "esp_partition.h"
 
+/* maximum card id length */
+#define REPORT_MAX_CARD_ID_LEN 10
+
 /* report content types */
 typedef enum {
 	REPORT_KIND_OPEN,
@@ -31,6 +34,10 @@ typedef struct
 		struct {
 			bool access;
 		} magic;
+		struct {
+			char id[REPORT_MAX_CARD_ID_LEN+1];
+			uint8_t id_len;
+		} card;
 	} data;
 } report_data_t;
 

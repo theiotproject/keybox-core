@@ -22,6 +22,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 
 const esp_partition_t *app_fring_partition;
 static esp_event_loop_handle_t app_event_loop;
+const char test_card_id[] = "0123456789";
 
 void app_main(void)
 {
@@ -287,6 +288,8 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 		case BOARD_EVENT_BUTTON:
 			report_data.when = 0;
 			report_data.kind = REPORT_KIND_NEWCARD;
+			report_data.data.card.id_len = strlen(test_card_id);
+			strncpy(report_data.data.card.id, test_card_id, report_data.data.card.id_len+1);
 			report_add(&report_data);
 		}
 		return;
