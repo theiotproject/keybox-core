@@ -4,7 +4,6 @@
 #include "nvs.h"
 #include "ui_manager.h"
 #include "string.h"
-#include "mecfmt.h"
 #include <time.h>
 
 static const char *acces_tag = "access";
@@ -83,14 +82,9 @@ bool access_process_code_open(char *data)
 {
 	time_period_t period;
 	char valueString[sizeof("9223372036854775807")];
-	mecfmt_value_t value;
 
-	value = mecfmt_get_velue(data, "VF");
-	mecfmt_value_to_string(&value, valueString);
-	period.from = (time_t)(atol(valueString));
+  // MECFMT CODE ...
 
-	value = mecfmt_get_velue(data, "VT");
-	mecfmt_value_to_string(&value, valueString);
 	period.to = (time_t)(atol(valueString));
 
 	return is_period_valid(period);
