@@ -82,19 +82,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	{
 		switch(event_id)
 		{
-		case BOARD_EVENT_READER_READY: /* log reader info to cloud */
-			if(app_wifi_connected && app_cloud_connected) /* do it now */
-			{
-				cloud_log(app_tag, event_data);
-			}
-			else /* do it later */
-			{
-				reader_info = malloc(strlen(event_data) + 1);
-				ESP_ERROR_CHECK(reader_info == NULL ? ESP_ERR_NO_MEM : ESP_OK);
-				strcpy(reader_info, event_data);
-			}
-			break;
-		case BOARD_EVENT_NEW_CODE: /* process code */
+		case BOARD_EVENT_NEW_CARD: /* process code */
 		{
 			// noop
 			break;
