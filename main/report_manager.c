@@ -4,7 +4,6 @@
 #include "esp_log.h"
 #include "task_prio.h"
 #include "flash_ring.h"
-#include "rtc_daemon.h"
 #include "cloud_manager.h"
 
 static const char *report_tag = "report";
@@ -66,7 +65,6 @@ static void report_tamper_task(void *arg)
 	data.kind = REPORT_KIND_TAMPER;
 	while(true)
 	{
-		rtcd_fetch_tamper(&data.when, portMAX_DELAY); /* block task until detected */
 		report_add(&data);
 	}
 }

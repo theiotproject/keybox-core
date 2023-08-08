@@ -8,7 +8,6 @@
 #include "nvs.h"
 #include "task_prio.h"
 #include "board_lib.h"
-#include "rtc_daemon.h"
 #include "flash_ring.h"
 #include "wifi_manager.h"
 #include "ui_manager.h"
@@ -26,12 +25,7 @@ static esp_event_loop_handle_t app_event_loop;
 void app_main(void)
 {
 	esp_err_t ret;
-	rtcd_config_t rtcd_conf = {
-			.enable_ntp_from_dhcp = true,
-			.static_server_names[0] = "pool.ntp.org",
-			.static_server_names[1] = NULL,
-			.task_priority = TP_RTCD,
-	};
+	
 	/* main application event loop */
 	const esp_event_loop_args_t loop_args = {
 			.queue_size = 16,
@@ -60,7 +54,6 @@ void app_main(void)
 	board_init(app_event_loop); /* all low level inits */
 	ui_start();
 	wifi_init(); /* connects to network if configured in the NVS */
-	rtcd_start(&rtcd_conf); /* acquires time */
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */

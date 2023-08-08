@@ -38,7 +38,6 @@ void board_init(esp_event_loop_handle_t event_loop)
 {
 	ledc_timer_config_t timer_conf;
 	ledc_channel_config_t ledc_conf;
-	i2c_config_t i2c_conf;
 	adc_digi_init_config_t adc_init_conf;
 	adc_digi_pattern_config_t adc_ptn_conf;
 	adc_digi_configuration_t adc_digi_conf;
@@ -97,17 +96,6 @@ void board_init(esp_event_loop_handle_t event_loop)
 	ledc_conf.channel = IR_CH;
 	ledc_conf.gpio_num = CONFIG_BOARD_LED_IR_GPIO;
 	ESP_ERROR_CHECK(ledc_channel_config(&ledc_conf));
-
-	/* I2C (used by RTC) */
-	i2c_conf.mode = I2C_MODE_MASTER;
-	i2c_conf.sda_io_num = CONFIG_BOARD_SDA_GPIO;
-	i2c_conf.scl_io_num = CONFIG_BOARD_SCL_GPIO;
-	i2c_conf.sda_pullup_en = false;
-	i2c_conf.scl_pullup_en = false;
-	i2c_conf.master.clk_speed = 100000;
-	i2c_conf.clk_flags = 0;
-	ESP_ERROR_CHECK(i2c_param_config(CONFIG_RTCD_I2C, &i2c_conf));
-	ESP_ERROR_CHECK(i2c_driver_install(CONFIG_RTCD_I2C, i2c_conf.mode, 0, 0, 0));
 
 	/* supply monitor */
 	adc_init_conf.adc1_chan_mask = BIT(CONFIG_BOARD_VM_ADC_CH);
