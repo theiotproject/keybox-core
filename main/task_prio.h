@@ -4,7 +4,6 @@
 #include "freertos/FreeRTOS.h"
 
 #define TP_READER 1
-#define TP_RTCD 1
 #define TP_UPLOAD 1
 #define TP_TAMPER 1
 #define TP_MAIN 2
