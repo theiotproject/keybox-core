@@ -55,7 +55,6 @@ void app_main(void)
 	ui_start();
 	wifi_init(); /* connects to network if configured in the NVS */
 	report_start(app_fring_partition); /* saves and uploads reports */
-	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
 	access_init();
 }
