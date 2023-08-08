@@ -41,11 +41,7 @@ static const cloud_numeric_rpc_t cloud_numeric_rpcs[] = {
 };
 /* report data paths */
 static const char *cloud_report_paths[REPORT_KIND_MAX] = {
-		"open",
-		"wiegand",
-		"tamper",
-		"button",
-		"magic"
+		"button"
 };
 /* events generated in this module */
 ESP_EVENT_DEFINE_BASE(CLOUD_EVENT);

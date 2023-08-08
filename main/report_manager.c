@@ -9,7 +9,6 @@
 static const char *report_tag = "report";
 
 static void report_upload_task(void *arg);
-static void report_tamper_task(void *arg);
 
 /* report data storage */
 static fring_context_t *report_fring_ctx;
@@ -22,8 +21,6 @@ void report_start(const esp_partition_t *partition)
 	report_fring_ctx = fring_init(partition);
 	ESP_ERROR_CHECK(report_fring_ctx == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 	ret = xTaskCreate(report_upload_task, report_tag, 2048 + configMINIMAL_STACK_SIZE, NULL, TP_UPLOAD, NULL);
-	ESP_ERROR_CHECK(ret != pdPASS ? ESP_ERR_NO_MEM : ESP_OK);
-	ret = xTaskCreate(report_tamper_task, "rep-tamp", 2048 + configMINIMAL_STACK_SIZE, NULL, TP_TAMPER, NULL);
 	ESP_ERROR_CHECK(ret != pdPASS ? ESP_ERR_NO_MEM : ESP_OK);
 }
 
@@ -53,18 +50,5 @@ static void report_upload_task(void *arg)
 		fring_read(report_fring_ctx, &data, &data_size, portMAX_DELAY); /* block task until new data arrives */
 		cloud_report(&data); /* block task until upload completes */
 		fring_confirm_read(report_fring_ctx);
-	}
-}
-
-/* waits for tamper events */
-static void report_tamper_task(void *arg)
-{
-	report_data_t data;
-	(void)arg;
-
-	data.kind = REPORT_KIND_TAMPER;
-	while(true)
-	{
-		report_add(&data);
 	}
 }
