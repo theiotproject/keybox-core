@@ -119,8 +119,6 @@ static void gm65_task(void *arg)
 	/* alocate space for code */
 	code_buf = malloc(CONFIG_MAX_CODE_LEN+1);
 	ESP_ERROR_CHECK(code_buf == NULL ? ESP_ERR_NO_MEM : ESP_OK);
-	/* enable IR illumination */
-	board_set_ir(1);
 	reader_info_size = snprintf(NULL, 0, "Rt GM65 " INFO_FORMAT(version)) + 1;
 	reader_info_str = malloc(reader_info_size);
 	sprintf(reader_info_str, "Rt GM65 " INFO_FORMAT(version));
@@ -181,7 +179,6 @@ static void gm65_task(void *arg)
 board_reader_task_fail:
 	if(code_buf)
 		free(code_buf);
-	board_set_ir(0);
 	gm65_power(0);
 	uart_driver_delete(READER_UART);
 	ESP_LOGE(gm65_tag, "Failed");

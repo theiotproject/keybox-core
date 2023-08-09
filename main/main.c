@@ -131,7 +131,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				gettimeofday(&sys_time, NULL);
 				time_str = ctime(&sys_time.tv_sec);
 				time_str[strlen(time_str) - 1] = 0;
-				cloud_log(app_tag, "HWt " BOARD_HW_INFO " %umV %s", board_supply_meas(), time_str);
+				cloud_log(app_tag, "HWt " BOARD_HW_INFO " %s", time_str);
 				if(app_wifi_connected && reader_info)
 				{
 					cloud_log(app_tag, reader_info);

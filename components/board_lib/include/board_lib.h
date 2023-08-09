@@ -24,8 +24,6 @@ void board_init(esp_event_loop_handle_t event_loop);
 void board_set_buzzer(bool state);
 void board_set_led(ledc_channel_t led_ch, uint32_t duty);
 void board_set_relay(bool state);
-void board_set_ir(uint32_t state);
-uint32_t board_supply_meas(void);
 void board_reader_start(esp_event_loop_handle_t event_loop, UBaseType_t task_priority);
 
 #endif /* COMPONENTS_BOARD_LIB_INCLUDE_BOARD_LIB_H_ */
