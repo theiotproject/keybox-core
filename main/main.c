@@ -159,10 +159,6 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 					ui_rg_beep_open(UI_ACCESS_DENIED);
 				}
 				break;
-			case CLOUD_EVENT_WIEGAND: /* RPC parameters: number 1 - 63 - bit count, hex string - data (sent MSB first) */
-				ui_rg_beep_open(UI_WIEGAND);
-				board_wiegand_send(((cloud_wiegand_data_t *)event_data)->code, ((cloud_wiegand_data_t *)event_data)->code_len);
-				break;
 		}
 		return;
 	}

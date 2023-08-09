@@ -116,22 +116,6 @@ void board_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(adc_digi_controller_configure(&adc_digi_conf));
 	esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_0, ADC_WIDTH_BIT_DEFAULT, DEFAULT_VREF, &adc1_chars);
 
-	/* wiegand */
-	rmt_conf.clk_div = 10; /* 10us tick @ 1MHz clock */
-	rmt_conf.flags = RMT_CHANNEL_FLAGS_AWARE_DFS; /* sets 1MHz clock */
-	rmt_conf.mem_block_num = 1; /* 63b max */
-	rmt_conf.rmt_mode = RMT_MODE_TX;
-	rmt_conf.tx_config.carrier_en = false;
-	rmt_conf.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
-	rmt_conf.tx_config.idle_output_en = true;
-	rmt_conf.tx_config.loop_en = false;
-	for(rmt_conf.channel=DO_RMT_CH; rmt_conf.channel<=D1_RMT_CH; rmt_conf.channel++)
-	{
-		rmt_conf.gpio_num = rmt_conf.channel==DO_RMT_CH ? CONFIG_BOARD_WIEGAND_D0_GPIO : CONFIG_BOARD_WIEGAND_D1_GPIO;
-		ESP_ERROR_CHECK(rmt_config(&rmt_conf));
-		ESP_ERROR_CHECK(rmt_driver_install(rmt_conf.channel, 0, 0));
-	}
-
 	/* button debounce timer */
 	board_button_timer = xTimerCreate("btn", pdMS_TO_TICKS(CONFIG_BOARD_BUTTON_DEBOUNCE), pdFALSE, NULL, button_timer_cb);
 	ESP_ERROR_CHECK(board_button_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
@@ -177,50 +161,6 @@ void board_set_ir(uint32_t state)
 #else
 	(void)state;
 #endif
-}
-
-/* sends Wiegand frame, length in bits, data sent MSB first */
-void board_wiegand_send(uint64_t frame, uint8_t len)
-{
-	static portMUX_TYPE tx_spinlock = (portMUX_TYPE)portMUX_INITIALIZER_UNLOCKED;
-	rmt_channel_t ch;
-	rmt_item32_t item;
-	uint8_t bit_num;
-	bool bit_level;
-
-	ESP_ERROR_CHECK(len > 63 ? ESP_ERR_INVALID_ARG : ESP_OK);
-
-
-	for(ch=DO_RMT_CH; ch<=D1_RMT_CH; ch++)
-		ESP_ERROR_CHECK(rmt_tx_memory_reset(ch));
-	/* encode each line bit on a symbol pair: inactive - double 0, active - 1 and 0 */
-	item.duration0 = CONFIG_BOARD_WIEGAND_PULSE;
-	item.duration1  = CONFIG_BOARD_WIEGAND_PERIOD - CONFIG_BOARD_WIEGAND_PULSE;
-	item.level1 = 0;
-	for(bit_num=0; bit_num<len; bit_num++)
-	{
-		bit_level = !(frame & (1ULL<<(len-bit_num-1)));
-
-		item.level0 = bit_level;
-		ESP_ERROR_CHECK(rmt_fill_tx_items(DO_RMT_CH, &item, 1, bit_num));
-		item.level0 = !bit_level;
-		ESP_ERROR_CHECK(rmt_fill_tx_items(D1_RMT_CH, &item, 1, bit_num));
-	}
-	/* end markers */
-	item.val = 0;
-	for(ch=DO_RMT_CH; ch<=D1_RMT_CH; ch++)
-	{
-		ESP_ERROR_CHECK(rmt_fill_tx_items(ch, &item, 1, len));
-	}
-	/* send, ensure no scheduling between calls, sync master isn't available on ESP32 */
-	taskENTER_CRITICAL(&tx_spinlock);
-	for(ch=DO_RMT_CH; ch<=D1_RMT_CH; ch++)
-		rmt_tx_start(ch, false);
-	taskEXIT_CRITICAL(&tx_spinlock);
-	/* wait for completion */
-	for(ch=DO_RMT_CH; ch<=D1_RMT_CH; ch++)
-		ESP_ERROR_CHECK(rmt_wait_tx_done(ch, portMAX_DELAY));
-    ESP_LOGI("wienagd sender", "Sending frame: %" PRIu64 ", Length: %u\n", frame, len);
 }
 
 /* blocks until completion, result [mV] */

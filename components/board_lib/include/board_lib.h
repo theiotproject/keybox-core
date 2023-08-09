@@ -25,7 +25,6 @@ void board_set_buzzer(bool state);
 void board_set_led(ledc_channel_t led_ch, uint32_t duty);
 void board_set_relay(bool state);
 void board_set_ir(uint32_t state);
-void board_wiegand_send(uint64_t frame, uint8_t len);
 uint32_t board_supply_meas(void);
 void board_reader_start(esp_event_loop_handle_t event_loop, UBaseType_t task_priority);
 

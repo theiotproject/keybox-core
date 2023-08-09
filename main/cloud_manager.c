@@ -11,11 +11,7 @@
 
 #define CLOUD_EV_CONNECT_BIT BIT(0)
 /* report string formats */
-#define CLOUD_FORM_OPEN(r) "%llu,%c", (uint64_t)(r)->when, (char)(r)->data.open.access + '0'
-#define CLOUD_FORM_WIEGAND(r) "%llu,%hhu,%llx", (uint64_t)(r)->when, (r)->data.wiegand.code_len, (r)->data.wiegand.code
-#define CLOUD_FORM_TAMPER(r) "%llu", (uint64_t)(r)->when
 #define CLOUD_FORM_BUTTON(r) "%llu", (uint64_t)(r)->when
-#define CLOUD_FORM_MAGIC(r) "%llu,%c", (uint64_t)(r)->when, (char)(r)->data.magic.access + '0'
 
 typedef struct {
 		const char *name;
@@ -24,7 +20,6 @@ typedef struct {
 
 static void cloud_client_cb(golioth_client_t client, golioth_client_event_t event, void* arg);
 static golioth_rpc_status_t cloud_numeric_cb(const char* method, const cJSON* params, uint8_t* detail, size_t detail_size, void* callback_arg);
-static golioth_rpc_status_t cloud_wiegand_cb(const char* method, const cJSON* params, uint8_t* detail, size_t detail_size, void* callback_arg);
 static golioth_status_t cloud_report_exec(report_data_t *report);
 
 static const char *cloud_tag = "cloud";
@@ -117,7 +112,6 @@ void cloud_join(char *id, char *psk)
 	len = sizeof(cloud_numeric_rpcs)/sizeof(cloud_numeric_rpc_t);
 	for(i=0; i<len; i++)
 		golioth_rpc_register(cloud_client, cloud_numeric_rpcs[i].name, cloud_numeric_cb, NULL);
-	golioth_rpc_register(cloud_client, "wiegand", cloud_wiegand_cb, NULL);
 	golioth_fw_update_init(cloud_client, g_version);
 	ESP_LOGI(cloud_tag, "Joining as %s", cloud_id);
 	xSemaphoreGive(cloud_mutex);
@@ -247,48 +241,6 @@ static golioth_rpc_status_t cloud_numeric_cb(const char* method, const cJSON* pa
 			return(RPC_OK);
 		}
 	return(RPC_UNKNOWN);
-}
-
-/* parser for Wiegand RPC */
-static golioth_rpc_status_t cloud_wiegand_cb(const char* method, const cJSON* params, uint8_t* detail, size_t detail_size, void* callback_arg)
-{
-	cJSON *item;
-	cloud_wiegand_data_t wiegand_data;
-	(void)method;
-	(void)callback_arg;
-	(void)detail_size;
-	(void)detail;
-
-	if(cJSON_GetArraySize(params) != 2)
-	{
-		ESP_LOGE(cloud_tag, "Incorrect wiegand parameter count");
-		return(RPC_INVALID_ARGUMENT);
-	}
-	item = cJSON_GetArrayItem(params, 0);
-	if(!cJSON_IsNumber(item))
-	{
-		ESP_LOGE(cloud_tag, "Incorrect wiegand length type");
-		return(RPC_INVALID_ARGUMENT);
-	}
-	if(item->valueint <= 0 || item->valueint > 63)
-	{
-		ESP_LOGE(cloud_tag, "Incorrect wiegand length %d", item->valueint);
-		return(RPC_INVALID_ARGUMENT);
-	}
-	wiegand_data.code_len = item->valueint;
-	item = cJSON_GetArrayItem(params, 1);
-	if(!cJSON_IsString(item))
-	{
-		ESP_LOGE(cloud_tag, "Incorrect wiegand code type");
-		return(RPC_INVALID_ARGUMENT);
-	}
-	if(sscanf(item->valuestring, "%llx", &wiegand_data.code) != 1)
-	{
-		ESP_LOGE(cloud_tag, "Incorrect wiegand code content %s", item->valuestring);
-		return(RPC_INVALID_ARGUMENT);
-	}
-	ESP_ERROR_CHECK(esp_event_post_to(cloud_event_loop, CLOUD_EVENT, CLOUD_EVENT_WIEGAND, &wiegand_data, sizeof(wiegand_data), portMAX_DELAY));
-	return(RPC_OK);
 }
 
 /* formats and uploads report to cloud */

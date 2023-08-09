@@ -76,9 +76,8 @@ void ui_rg_beep_open(uint32_t r, uint32_t g, uint32_t beep, bool open)
 	msg.pattern[UI_ITEM_LED_G] = g;
 	msg.pattern[UI_ITEM_BEEP] = beep;
 	if(open){
-        board_wiegand_send(0x2abcd, 26);
-        msg.item_map |= BIT(UI_ITEM_OPEN);
-    }
+		msg.item_map |= BIT(UI_ITEM_OPEN);
+	}
 	xQueueSend(ui_update_queue, &msg, 0);
 }
 
