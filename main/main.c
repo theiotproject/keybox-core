@@ -13,7 +13,6 @@
 #include "ui_manager.h"
 #include "cloud_manager.h"
 #include "report_manager.h"
-#include "access_manager.h"
 
 static const char *app_tag = "app";
 
@@ -57,7 +56,6 @@ void app_main(void)
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
-	access_init();
 }
 
 /* executed by the application loop task */
@@ -66,13 +64,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	static bool app_wifi_connected = false;
 	static bool app_cloud_connected = false;
 	char *reader_info = NULL;
-	char *field;
 	uint32_t led_brg;
-	size_t field_len;
-	char *wifi_ssid;
-	char *cloud_id;
-	uint8_t wiegand_len;
-	uint64_t wiegand_frame;
 	struct timeval sys_time;
 	char *time_str;
 	report_data_t report_data;
