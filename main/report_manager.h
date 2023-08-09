@@ -6,11 +6,7 @@
 
 /* report content types */
 typedef enum {
-	REPORT_KIND_OPEN,
-	REPORT_KIND_WIEGAND,
-	REPORT_KIND_TAMPER,
 	REPORT_KIND_BUTTON,
-	REPORT_KIND_MAGIC,
 	REPORT_KIND_MAX
 } report_kind_t;
 

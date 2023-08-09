@@ -300,30 +300,11 @@ static golioth_status_t cloud_report_exec(report_data_t *report)
 
 	switch(report->kind)
 	{
-	case REPORT_KIND_OPEN:
-		len = snprintf(NULL, 0, CLOUD_FORM_OPEN(report));
-		buf = malloc(len + 1);
-		sprintf(buf, CLOUD_FORM_OPEN(report));
-		break;
-	case REPORT_KIND_WIEGAND:
-		len = snprintf(NULL, 0, CLOUD_FORM_WIEGAND(report));
-		buf = malloc(len + 1);
-		sprintf(buf, CLOUD_FORM_WIEGAND(report));
-		break;
-	case REPORT_KIND_TAMPER:
-		len = snprintf(NULL, 0, CLOUD_FORM_TAMPER(report));
-		buf = malloc(len + 1);
-		sprintf(buf, CLOUD_FORM_TAMPER(report));
-		break;
 	case REPORT_KIND_BUTTON:
 		len = snprintf(NULL, 0, CLOUD_FORM_BUTTON(report));
 		buf = malloc(len + 1);
 		sprintf(buf, CLOUD_FORM_BUTTON(report));
-		break;
-	case REPORT_KIND_MAGIC:
-		len = snprintf(NULL, 0, CLOUD_FORM_MAGIC(report));
-		buf = malloc (len+1);
-		sprintf(buf, CLOUD_FORM_MAGIC(report));
+		ESP_LOGD(cloud_tag, "Button event %d, %llu", report->kind, (uint64_t)(report->when));
 		break;
 	default:
 		ESP_LOGW(cloud_tag, "Skipped unsupported report kind %u", (uint32_t)report->kind);
