@@ -24,7 +24,7 @@ static esp_event_loop_handle_t app_event_loop;
 void app_main(void)
 {
 	esp_err_t ret;
-	
+
 	/* main application event loop */
 	const esp_event_loop_args_t loop_args = {
 			.queue_size = 16,
@@ -93,10 +93,11 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			}
 		case BOARD_EVENT_BUTTON:
 			report_data.when = 0;
-			report_data.kind = REPORT_KIND_BUTTON;
-			report_add(&report_data);
+			report_data.kind = REPORT_KIND_NEW_CARD;
+			report_data.data.card_id = 123456789;
+            report_add(&report_data);
 			ui_rg_beep_open(UI_ACCESS_GRANTED);
-			break;
+            break;
 		}
 		return;
 	}
