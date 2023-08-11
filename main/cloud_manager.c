@@ -11,7 +11,7 @@
 
 #define CLOUD_EV_CONNECT_BIT BIT(0)
 /* report string formats */
-#define CLOUD_FORM_BUTTON(r) "%llu", (uint64_t)(r)->when
+#define CLOUD_FORM_NEW_CARD(r) "%llu,%llu", (uint64_t)(r)->when, (r)->data.card_id
 
 typedef struct {
 		const char *name;
@@ -36,7 +36,7 @@ static const cloud_numeric_rpc_t cloud_numeric_rpcs[] = {
 };
 /* report data paths */
 static const char *cloud_report_paths[REPORT_KIND_MAX] = {
-		"button"
+		"newCard"
 };
 /* events generated in this module */
 ESP_EVENT_DEFINE_BASE(CLOUD_EVENT);
@@ -252,10 +252,10 @@ static golioth_status_t cloud_report_exec(report_data_t *report)
 
 	switch(report->kind)
 	{
-	case REPORT_KIND_BUTTON:
-		len = snprintf(NULL, 0, CLOUD_FORM_BUTTON(report));
+	case REPORT_KIND_NEW_CARD:
+		len = snprintf(NULL, 0, CLOUD_FORM_NEW_CARD(report));
 		buf = malloc(len + 1);
-		sprintf(buf, CLOUD_FORM_BUTTON(report));
+		sprintf(buf, CLOUD_FORM_NEW_CARD(report));
 		ESP_LOGD(cloud_tag, "Button event %d, %llu", report->kind, (uint64_t)(report->when));
 		break;
 	default:

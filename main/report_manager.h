@@ -6,7 +6,7 @@
 
 /* report content types */
 typedef enum {
-	REPORT_KIND_BUTTON,
+	REPORT_KIND_NEW_CARD,
 	REPORT_KIND_MAX
 } report_kind_t;
 
@@ -16,16 +16,7 @@ typedef struct
 	report_kind_t kind;
 	time_t when;
 	union {
-		struct {
-			bool access;
-		} open;
-		struct {
-			uint64_t code;
-			uint8_t code_len;
-		} wiegand;
-		struct {
-			bool access;
-		} magic;
+			uint64_t card_id;
 	} data;
 } report_data_t;
 
