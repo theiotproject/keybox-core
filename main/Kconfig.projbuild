@@ -42,6 +42,20 @@ menu "IoT Lock Configuration"
         help
             Solenoid duty will be counted within this time.
 
+    config UI_SERVO_CLOSE_ANGLE
+        int "Servo close angle [deg]"
+        range -180 180
+        default 20
+        help
+            Servo open angle [deg].
+
+    config UI_SERVO_OPEN_ANGLE
+        int "Servo open angle [deg]"
+        range -180 180
+        default -60
+        help
+            Servo open angle [deg].
+
     config CLOUD_RETRY_TIME
         int "Time to wait after a failed upload attempt [s]"
         range 1 3600
