@@ -95,7 +95,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			report_data.when = 0;
 			report_data.kind = REPORT_KIND_NEW_CARD;
 			report_data.data.card_id = 123456789;
-            report_add(&report_data);
+			report_add(&report_data);
 			ui_rg_beep_open(UI_ACCESS_GRANTED);
             break;
 		}

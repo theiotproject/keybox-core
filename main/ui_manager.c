@@ -118,6 +118,7 @@ static void ui_task(void *arg)
 				{
 					ESP_LOGD(ui_tag, "Open start, heat %u", ui_open_heat);
 					board_set_relay(true);
+					board_servo_set_angle(CONFIG_UI_SERVO_OPEN_ANGLE);
 					ui_open_counter = OPEN_COUNTS + 1; /* decreased immediately after */
 				}
 				else
@@ -162,6 +163,7 @@ static void ui_task(void *arg)
 			{
 				ESP_LOGD(ui_tag, "Open finish, heat %u", ui_open_heat);
 				board_set_relay(false);
+				board_servo_set_angle(CONFIG_UI_SERVO_CLOSE_ANGLE);
 			}
 		}
 		/* duty cycle tracking */

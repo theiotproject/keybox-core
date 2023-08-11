@@ -188,4 +188,39 @@ menu "Board Library"
         help
             Button state will be sampled again after this time.
 
+    config BOARD_SERVO_GPIO
+        int "Servo GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 18
+        help
+            GPIO number (IOxx) connected to servo PWM line.
+
+    config BOARD_SERVO_MAX_DEGREE
+        int "Servo max. degree"
+        range 1 180
+        default 90
+        help
+            Servo maximum movement range [deg].
+
+    config BOARD_SERVO_MIN_PULSEWIDTH_US
+        int "Servo min. pulse width [us]"
+        range 1 20000
+        default 500
+        help
+            Servo PWM signal min. pulse width [us].
+
+    config BOARD_SERVO_MAX_PULSEWIDTH_US
+        int "Servo max. pulse width [us]"
+        range 1 20000
+        default 2500
+        help
+            Servo PWM signal max. pulse width [us].
+
+    config BOARD_SERVO_INIT_ANGLE
+        int "Servo init angle [deg]"
+        range -90 90
+        default 20
+        help
+            Servo initial angle [deg].
+
 endmenu
