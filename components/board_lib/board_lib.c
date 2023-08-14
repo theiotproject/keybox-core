@@ -78,13 +78,19 @@ void board_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_BUTTON_GPIO, button_gpio_isr, NULL));
 
 	/* servo */
-	mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM0A, CONFIG_BOARD_SERVO_GPIO); // To drive a RC servo, one MCPWM generator is enough
+	mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM0A, CONFIG_BOARD_SERVO1_GPIO); // To drive a RC servo, one MCPWM generator is enough
+	mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM1A, CONFIG_BOARD_SERVO2_GPIO); // To drive a RC servo, one MCPWM generator is enough
+	mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM2A, CONFIG_BOARD_SERVO3_GPIO); // To drive a RC servo, one MCPWM generator is enough
         pwm_conf.frequency = 50, // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
         pwm_conf.cmpr_a = 0,     // duty cycle of PWMxA = 0
         pwm_conf.counter_mode = MCPWM_UP_COUNTER,
         pwm_conf.duty_mode = MCPWM_DUTY_MODE_0,
 	mcpwm_init(MCPWM_UNIT_0, MCPWM_TIMER_0, &pwm_conf);
+	mcpwm_init(MCPWM_UNIT_0, MCPWM_TIMER_1, &pwm_conf);
+	mcpwm_init(MCPWM_UNIT_0, MCPWM_TIMER_2, &pwm_conf);
 	ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, convert_servo_angle_to_duty_us(CONFIG_BOARD_SERVO_INIT_ANGLE)));
+	ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_1, MCPWM_OPR_A, convert_servo_angle_to_duty_us(CONFIG_BOARD_SERVO_INIT_ANGLE)));
+	ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_2, MCPWM_OPR_A, convert_servo_angle_to_duty_us(CONFIG_BOARD_SERVO_INIT_ANGLE)));
 }
 
 /* buzzer on/off control */
@@ -127,7 +133,20 @@ static void button_timer_cb(TimerHandle_t timer)
 	}
 }
 
-void board_servo_set_angle(int angle)
+void board_servo_set_angle(int angle, int timer_num)
 {
-	ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, convert_servo_angle_to_duty_us(angle)));
+  switch (timer_num)
+  {
+    case 0:
+	    ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_OPR_A, convert_servo_angle_to_duty_us(angle)));
+      break;
+    case 1:
+	    ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_1, MCPWM_OPR_A, convert_servo_angle_to_duty_us(angle)));
+      break;
+    case 2:
+	    ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, MCPWM_TIMER_2, MCPWM_OPR_A, convert_servo_angle_to_duty_us(angle)));
+      break;
+    default:
+      break;
+  }
 }

@@ -25,6 +25,6 @@ void board_set_buzzer(bool state);
 void board_set_led(ledc_channel_t led_ch, uint32_t duty);
 void board_set_relay(bool state);
 void board_reader_start(esp_event_loop_handle_t event_loop, UBaseType_t task_priority);
-void board_servo_set_angle(int angle);
+void board_servo_set_angle(int angle, int timer_num);
 
 #endif /* COMPONENTS_BOARD_LIB_INCLUDE_BOARD_LIB_H_ */

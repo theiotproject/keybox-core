@@ -40,6 +40,8 @@ static QueueHandle_t ui_update_queue;
 static uint32_t ui_brightnesss;
 static nvs_handle_t ui_nvs_handle;
 
+static uint8_t servo_switch = 0;
+
 void ui_start(void)
 {
 	BaseType_t ret;
@@ -93,7 +95,6 @@ void ui_blue(uint32_t b)
 
 static void ui_task(void *arg)
 {
-	static uint32_t ui_open_heat = 0;
 	static uint32_t ui_pattern[UI_ITEM_OPEN] = {0, 0, UI_NET_NO_WIFI, 0x7}; /* no connection, start with a beep */
 	static uint32_t ui_open_counter = 0;
 	ui_update_msg_t update_msg;
@@ -114,17 +115,10 @@ static void ui_task(void *arg)
 			/* control output enable, limit duty cycle within a defined period */
 			if(update_msg.item_map & BIT(UI_ITEM_OPEN))
 			{
-				if(ui_open_heat <= HEAT_MAX) /* include equal, to allow operation with a 100% duty cycle */
-				{
-					ESP_LOGD(ui_tag, "Open start, heat %u", ui_open_heat);
+					ESP_LOGD(ui_tag, "Open start");
 					board_set_relay(true);
-					board_servo_set_angle(CONFIG_UI_SERVO_OPEN_ANGLE);
+					board_servo_set_angle(CONFIG_UI_SERVO_OPEN_ANGLE, servo_switch%3);
 					ui_open_counter = OPEN_COUNTS + 1; /* decreased immediately after */
-				}
-				else
-				{
-					ESP_LOGD(ui_tag, "Open cancel, heat %u", ui_open_heat);
-				}
 			}
 		}
 		/* execute patterns */
@@ -161,23 +155,11 @@ static void ui_task(void *arg)
 			ui_open_counter--;
 			if(!ui_open_counter)
 			{
-				ESP_LOGD(ui_tag, "Open finish, heat %u", ui_open_heat);
+				ESP_LOGD(ui_tag, "Open finish");
 				board_set_relay(false);
-				board_servo_set_angle(CONFIG_UI_SERVO_CLOSE_ANGLE);
+				board_servo_set_angle(CONFIG_UI_SERVO_CLOSE_ANGLE, servo_switch);
+        servo_switch++;
 			}
-		}
-		/* duty cycle tracking */
-		if(ui_open_counter)
-		{
-			ui_open_heat += (100-CONFIG_UI_OPEN_DUTY);
-		}
-		else if(ui_open_heat > CONFIG_UI_OPEN_DUTY)
-		{
-			ui_open_heat -= CONFIG_UI_OPEN_DUTY;
-		}
-		else
-		{
-			ui_open_heat = 0;
 		}
 	}
 }
