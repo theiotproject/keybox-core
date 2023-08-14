@@ -157,7 +157,7 @@ static void ui_task(void *arg)
 			{
 				ESP_LOGD(ui_tag, "Open finish");
 				board_set_relay(false);
-				board_servo_set_angle(CONFIG_UI_SERVO_CLOSE_ANGLE, servo_switch);
+				board_servo_set_angle(CONFIG_UI_SERVO_CLOSE_ANGLE, servo_switch%3);
         servo_switch++;
 			}
 		}
