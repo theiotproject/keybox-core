@@ -9,8 +9,10 @@
 #include "esp_rom_gpio.h"
 #include "esp_event.h"
 #include "board_lib.h"
+#include "ntxfr.h"
 
 #define READER_UART UART_NUM_1
+#define CTU_CMD_SELECT 0x12
 
 static void ctu_task(void *arg);
 
@@ -33,11 +35,13 @@ static void ctu_task(void *arg)
 {
 	uart_config_t uart_conf;
 	size_t i;
-	ssize_t code_pos;
+	size_t code_pos;
 	uint8_t *code_buf = NULL;
 	uart_event_t uart_event;
 	QueueHandle_t uart_queue;
 	uint8_t read_data;
+	ntxfr_data_t ntx_data;
+	uint64_t card_id;
 
 	(void)arg;
 
@@ -58,12 +62,13 @@ static void ctu_task(void *arg)
 	/* alocate space for code */
 	code_buf = malloc(CONFIG_MAX_CODE_LEN+1);
 	ESP_ERROR_CHECK(code_buf == NULL ? ESP_ERR_NO_MEM : ESP_OK);
+	ntx_data.ptr = code_buf;
 
 	/* main reader loop */
-	code_pos = -1;
+	code_pos = 0;
 	while(true)
 	{
-		if(xQueueReceive(uart_queue, (void *)&uart_event, portMAX_DELAY))
+		if(xQueueReceive(uart_queue, (void *)&uart_event, pdMS_TO_TICKS(500)))
 		{
 			switch(uart_event.type)
 			{
@@ -71,32 +76,16 @@ static void ctu_task(void *arg)
 				for(i=0; i<uart_event.size; i++)
 				{
 					uart_read_bytes(READER_UART, &read_data, 1, portMAX_DELAY);
-					if(code_pos < 0) /* before code */
-					{
-						if(read_data == '\n') /* start marker */
-							code_pos = 0;
-					}
-					else /* inside code */
-					{
-						if(read_data == '\r') /* end marker */
-						{
-							/* report new code */
-							code_buf[code_pos] = 0; /* terminate string */
-							ESP_LOGD(ctu_tag, "New code: %s", code_buf);
-							ESP_ERROR_CHECK(esp_event_post_to(ctu_event_loop, BOARD_EVENT, BOARD_EVENT_NEW_CARD, code_buf, code_pos+1, portMAX_DELAY));
-							code_pos = -1; /* search again */
-						}
-						else if(code_pos >= CONFIG_MAX_CODE_LEN) /* oversized */
+						if(code_pos >= CONFIG_MAX_CODE_LEN) /* oversized */
 						{
 							ESP_LOGW(ctu_tag, "Oversized code");
-							code_pos = -1; /* search again */
+							code_pos = 0; /* search again */
 						}
 						else /* continue */
 						{
 							code_buf[code_pos] = read_data;
 							code_pos++;
 						}
-					}
 				}
 				break;
 			case UART_FIFO_OVF:
@@ -107,6 +96,35 @@ static void ctu_task(void *arg)
 				break;
 			default:
 				ESP_LOGD(ctu_tag, "UART event type: %d", uart_event.type);
+			}
+		} else {
+			/* no data received */
+			if(code_pos > 0) /* data ready to parse */
+			{
+				ntx_data.len = code_pos + 1;
+				if (ntxfr_is_valid(ntx_data) && ntxfr_get_res(ntx_data) == (CTU_CMD_SELECT + 1))
+				{
+					ntxfr_data_t ctu_id_data;
+					ctu_id_data = ntxfr_get_data(ntx_data);
+					if (ctu_id_data.len == 1 + 5 && ctu_id_data.ptr[0] == 0x01)
+					{
+						/* no colisions and valid ID length */
+						int i;
+						/* report new card */
+						card_id = 0;
+						for(i = 0; i < 5; i++) {
+							card_id += ((uint64_t)ctu_id_data.ptr[i + 1]) << (8 * i);
+						}
+						ESP_LOGD(ctu_tag, "Received card ID: %llu", card_id);
+						ESP_ERROR_CHECK(esp_event_post_to(ctu_event_loop, BOARD_EVENT, BOARD_EVENT_NEW_CARD, &card_id, sizeof(card_id), portMAX_DELAY));
+					} else {
+						/* unsupported card id data length */
+						ESP_LOGD(ctu_tag, "Card ID len: %d unsupported", ctu_id_data.len);
+					}
+				} else {
+					ESP_LOGW(ctu_tag, "Received invalid frame");
+				}
+				code_pos = 0; /* load buffer again */
 			}
 		}
 	}
