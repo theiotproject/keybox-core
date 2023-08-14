@@ -6,3 +6,5 @@ sdkconfig.old
 .cproject
 .settings
 main/version.c
+.vscode
+.cache
