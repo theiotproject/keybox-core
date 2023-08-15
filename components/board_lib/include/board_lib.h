@@ -18,6 +18,13 @@ typedef enum {
 	BOARD_EVENT_MAX
 } board_event_t;
 
+typedef enum {
+	BOARD_SERVO_1,
+	BOARD_SERVO_2,
+	BOARD_SERVO_3,
+	BOARD_SERVO_MAX
+} board_servo_t;
+
 ESP_EVENT_DECLARE_BASE(BOARD_EVENT);
 
 void board_init(esp_event_loop_handle_t event_loop);
@@ -25,6 +32,6 @@ void board_set_buzzer(bool state);
 void board_set_led(ledc_channel_t led_ch, uint32_t duty);
 void board_set_relay(bool state);
 void board_reader_start(esp_event_loop_handle_t event_loop, UBaseType_t task_priority);
-void board_servo_set_angle(int angle, int timer_num);
+void board_servo_set_angle(board_servo_t servo, int angle);
 
 #endif /* COMPONENTS_BOARD_LIB_INCLUDE_BOARD_LIB_H_ */
