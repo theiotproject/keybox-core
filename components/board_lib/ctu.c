@@ -76,16 +76,17 @@ static void ctu_task(void *arg)
 				for(i=0; i<uart_event.size; i++)
 				{
 					uart_read_bytes(READER_UART, &read_data, 1, portMAX_DELAY);
-						if(code_pos >= CONFIG_MAX_CODE_LEN) /* oversized */
-						{
-							ESP_LOGW(ctu_tag, "Oversized code");
-							code_pos = 0; /* search again */
-						}
-						else /* continue */
-						{
-							code_buf[code_pos] = read_data;
-							code_pos++;
-						}
+					if(code_pos >= CONFIG_MAX_CODE_LEN) /* oversized */
+					{
+						ESP_LOGW(ctu_tag, "Oversized code");
+						code_pos = 0; /* search again */
+					}
+					else /* continue */
+					{
+						ESP_LOGD(ctu_tag, "data received: 0x%x", read_data);
+						code_buf[code_pos] = read_data;
+						code_pos++;
+					}
 				}
 				break;
 			case UART_FIFO_OVF:
@@ -101,25 +102,31 @@ static void ctu_task(void *arg)
 			/* no data received */
 			if(code_pos > 0) /* data ready to parse */
 			{
-				ntx_data.len = code_pos + 1;
-				if (ntxfr_is_valid(ntx_data) && ntxfr_get_res(ntx_data) == (CTU_CMD_SELECT + 1))
+				ntx_data.len = code_pos;
+				if (ntxfr_is_valid(ntx_data))
 				{
-					ntxfr_data_t ctu_id_data;
-					ctu_id_data = ntxfr_get_data(ntx_data);
-					if (ctu_id_data.len == 1 + 5 && ctu_id_data.ptr[0] == 0x01)
+					if (ntxfr_get_res(ntx_data) == (CTU_CMD_SELECT + 1))
 					{
-						/* no colisions and valid ID length */
-						int i;
-						/* report new card */
-						card_id = 0;
-						for(i = 0; i < 5; i++) {
-							card_id += ((uint64_t)ctu_id_data.ptr[i + 1]) << (8 * i);
+						ntxfr_data_t ctu_id_data;
+						ctu_id_data = ntxfr_get_data(ntx_data);
+						if (ctu_id_data.len == 1 + 5 && ctu_id_data.ptr[0] == 0x01)
+						{
+							/* no colisions and valid ID length */
+							int i;
+							/* report new card */
+							card_id = 0;
+							for(i = 0; i < 5; i++) {
+								card_id += ((uint64_t)ctu_id_data.ptr[i + 1]) << (8 * i);
+							}
+							ESP_LOGD(ctu_tag, "Received card ID: %llu", card_id);
+							ESP_ERROR_CHECK(esp_event_post_to(ctu_event_loop, BOARD_EVENT, BOARD_EVENT_NEW_CARD, &card_id, sizeof(card_id), portMAX_DELAY));
+						} else {
+							/* unsupported card id data length */
+							ESP_LOGD(ctu_tag, "Card ID len: %d unsupported", ctu_id_data.len);
 						}
-						ESP_LOGD(ctu_tag, "Received card ID: %llu", card_id);
-						ESP_ERROR_CHECK(esp_event_post_to(ctu_event_loop, BOARD_EVENT, BOARD_EVENT_NEW_CARD, &card_id, sizeof(card_id), portMAX_DELAY));
 					} else {
-						/* unsupported card id data length */
-						ESP_LOGD(ctu_tag, "Card ID len: %d unsupported", ctu_id_data.len);
+						/* unexpected response */
+						ESP_LOGD(ctu_tag, "Unexpected response: %x", ntxfr_get_res(ntx_data));
 					}
 				} else {
 					ESP_LOGW(ctu_tag, "Received invalid frame");
