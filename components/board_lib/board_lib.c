@@ -50,7 +50,7 @@ void board_init(esp_event_loop_handle_t event_loop)
 	board_event_loop = event_loop;
 
 	/* output GPIOs */
-	const gpio_config_t gpio_out_conf = {
+	gpio_config_t gpio_out_conf = {
 			.pin_bit_mask = 1ULL<<CONFIG_BOARD_BUZZ_GPIO | 1ULL<<CONFIG_BOARD_RELAY_GPIO | 1ULL<<CONFIG_BOARD_READER_EN_GPIO | 1ULL<<CONFIG_BOARD_READER_TRG_GPIO,
 			.mode = GPIO_MODE_OUTPUT,
 			.pull_up_en = GPIO_PULLUP_DISABLE,
@@ -86,17 +86,23 @@ void board_init(esp_event_loop_handle_t event_loop)
 	board_button_timer = xTimerCreate("btn", pdMS_TO_TICKS(CONFIG_BOARD_BUTTON_DEBOUNCE), pdFALSE, NULL, button_timer_cb);
 	ESP_ERROR_CHECK(board_button_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 	/* button pin ISR */
-	ESP_ERROR_CHECK(gpio_set_pull_mode(CONFIG_BOARD_BUTTON_GPIO, GPIO_PULLUP_ONLY));
 	ESP_ERROR_CHECK(gpio_set_intr_type(CONFIG_BOARD_BUTTON_GPIO, GPIO_INTR_NEGEDGE));
 	ESP_ERROR_CHECK(gpio_install_isr_service(0));
 	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_BUTTON_GPIO, button_gpio_isr, NULL));
 
+    gpio_out_conf.pin_bit_mask = 1ULL<<16 | 1ULL<<17 | 1ULL<<19;
+	gpio_out_conf.mode = GPIO_MODE_INPUT;
+	gpio_out_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+	gpio_out_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+	gpio_out_conf.intr_type = GPIO_INTR_DISABLE;
+	ESP_ERROR_CHECK(gpio_config(&gpio_out_conf));
+
+	/* servo */
+	unsigned int i;
 	pwm_conf.frequency = 50; // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
 	pwm_conf.cmpr_a = 0;     // duty cycle of PWMxA = 0
  	pwm_conf.counter_mode = MCPWM_UP_COUNTER;
 	pwm_conf.duty_mode = MCPWM_DUTY_MODE_0;
-	/* servo */
-	unsigned int i;
 	for (i =0 ; i < BOARD_SERVO_MAX; i++) {
 		mcpwm_gpio_init(servo_conf[i].unit, servo_conf[i].io_signal, servo_conf[i].gpio); // To drive a RC servo, one MCPWM generator is enough
 		mcpwm_init(servo_conf[i].unit, servo_conf[i].timer, &pwm_conf);
@@ -137,10 +143,23 @@ static void button_timer_cb(TimerHandle_t timer)
 {
 	(void)timer;
 
+    static uint8_t button = 0;
 	/* send event if still pressed */
 	if(!gpio_get_level(CONFIG_BOARD_BUTTON_GPIO))
 	{
-		ESP_ERROR_CHECK(esp_event_post_to(board_event_loop, BOARD_EVENT, BOARD_EVENT_BUTTON, NULL, 0, 0));
+        if(!gpio_get_level(16)){
+            button = 1;
+        } else
+        if(!gpio_get_level(17)){
+            button = 2;
+        } else
+        if(!gpio_get_level(19)){
+            button = 3;
+        }
+        else {
+            button = 0;
+        }
+		ESP_ERROR_CHECK(esp_event_post_to(board_event_loop, BOARD_EVENT, BOARD_EVENT_BUTTON, &button, sizeof(button), 0));
 	}
 }
 
