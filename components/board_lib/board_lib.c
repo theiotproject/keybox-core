@@ -16,8 +16,8 @@
 typedef struct {
 	mcpwm_unit_t unit;
 	mcpwm_timer_t timer;
-  mcpwm_io_signals_t io_signal;
-  mcpwm_generator_t gen;
+ 	mcpwm_io_signals_t io_signal;
+	mcpwm_generator_t gen;
 	int gpio;
 } servo_t;
 
@@ -92,11 +92,11 @@ void board_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_BUTTON_GPIO, button_gpio_isr, NULL));
 
 	pwm_conf.frequency = 50; // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
-  pwm_conf.cmpr_a = 0;     // duty cycle of PWMxA = 0
-  pwm_conf.counter_mode = MCPWM_UP_COUNTER;
-  pwm_conf.duty_mode = MCPWM_DUTY_MODE_0;
+	pwm_conf.cmpr_a = 0;     // duty cycle of PWMxA = 0
+ 	pwm_conf.counter_mode = MCPWM_UP_COUNTER;
+	pwm_conf.duty_mode = MCPWM_DUTY_MODE_0;
 	/* servo */
-  unsigned int i;
+	unsigned int i;
 	for (i =0 ; i < BOARD_SERVO_MAX; i++) {
 		mcpwm_gpio_init(servo_conf[i].unit, servo_conf[i].io_signal, servo_conf[i].gpio); // To drive a RC servo, one MCPWM generator is enough
 		mcpwm_init(servo_conf[i].unit, servo_conf[i].timer, &pwm_conf);
