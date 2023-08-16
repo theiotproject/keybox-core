@@ -13,17 +13,18 @@
 #define LED_TIM LEDC_TIMER_0
 #define LED_MODE LEDC_HIGH_SPEED_MODE
 
-struct {
-	pcpwmunit_t unit,
-	timer_t timer,
-	gpiot_t gpio
-} servo_t
+typedef struct {
+	mcpwm_unit_t unit;
+	mcpwm_timer_t timer;
+  mcpwm_io_signals_t io_signal;
+  mcpwm_generator_t gen;
+	int gpio;
+} servo_t;
 
-servo_t servo_conf[BOARD_SERVO_MAX] {
-	{MCPWM_TIMER_0, CONFIG_BOARD_SERVO1_GPIO},
-	.
-	.
-
+servo_t servo_conf[BOARD_SERVO_MAX] = {
+	{MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM0A, MCPWM_OPR_A, CONFIG_BOARD_SERVO_1_GPIO},
+	{MCPWM_UNIT_0, MCPWM_TIMER_1, MCPWM1A, MCPWM_OPR_A, CONFIG_BOARD_SERVO_2_GPIO},
+	{MCPWM_UNIT_0, MCPWM_TIMER_2, MCPWM2A, MCPWM_OPR_A, CONFIG_BOARD_SERVO_3_GPIO},
 };
 
 ESP_EVENT_DEFINE_BASE(BOARD_EVENT);
@@ -90,15 +91,16 @@ void board_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(gpio_install_isr_service(0));
 	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_BUTTON_GPIO, button_gpio_isr, NULL));
 
-	pwm_conf.frequency = 50, // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
-    pwm_conf.cmpr_a = 0,     // duty cycle of PWMxA = 0
-    pwm_conf.counter_mode = MCPWM_UP_COUNTER,
-    pwm_conf.duty_mode = MCPWM_DUTY_MODE_0,
+	pwm_conf.frequency = 50; // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
+  pwm_conf.cmpr_a = 0;     // duty cycle of PWMxA = 0
+  pwm_conf.counter_mode = MCPWM_UP_COUNTER;
+  pwm_conf.duty_mode = MCPWM_DUTY_MODE_0;
 	/* servo */
+  unsigned int i;
 	for (i =0 ; i < BOARD_SERVO_MAX; i++) {
-		mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM0A, servo_conf[i].gpio); // To drive a RC servo, one MCPWM generator is enough
-		mcpwm_init(MCPWM_UNIT_0, servo_conf[i].timer, &pwm_conf);
-		ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, servo_conf[i].timer, MCPWM_OPR_A, convert_servo_angle_to_duty_us(CONFIG_BOARD_SERVO_INIT_ANGLE)));
+		mcpwm_gpio_init(servo_conf[i].unit, servo_conf[i].io_signal, servo_conf[i].gpio); // To drive a RC servo, one MCPWM generator is enough
+		mcpwm_init(servo_conf[i].unit, servo_conf[i].timer, &pwm_conf);
+		ESP_ERROR_CHECK(mcpwm_set_duty_in_us(servo_conf[i].unit, servo_conf[i].timer, servo_conf[i].gen, convert_servo_angle_to_duty_us(CONFIG_BOARD_SERVO_INIT_ANGLE)));
 	}
 }
 
@@ -142,7 +144,7 @@ static void button_timer_cb(TimerHandle_t timer)
 	}
 }
 
-void board_servo_set_angle(servo_t servo, int angle)
+void board_servo_set_angle(board_servo_t servo, int angle)
 {
-	ESP_ERROR_CHECK(mcpwm_set_duty_in_us(MCPWM_UNIT_0, servo_conf[servo].timer, MCPWM_OPR_A, convert_servo_angle_to_duty_us(angle)));
+	ESP_ERROR_CHECK(mcpwm_set_duty_in_us(servo_conf[servo].unit, servo_conf[servo].timer, servo_conf[servo].gen, convert_servo_angle_to_duty_us(angle)));
 }
