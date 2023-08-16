@@ -83,7 +83,6 @@ static void ctu_task(void *arg)
 					}
 					else /* continue */
 					{
-						ESP_LOGD(ctu_tag, "data received: 0x%x", read_data);
 						code_buf[code_pos] = read_data;
 						code_pos++;
 					}
@@ -109,7 +108,7 @@ static void ctu_task(void *arg)
 					{
 						ntxfr_data_t ctu_id_data;
 						ctu_id_data = ntxfr_get_data(ntx_data);
-						if (ctu_id_data.len == 1 + 5 && ctu_id_data.ptr[0] == 0x01)
+						if (ctu_id_data.len == 1 + 5 && ctu_id_data.ptr[0] == 0x00)
 						{
 							/* no colisions and valid ID length */
 							int i;
@@ -122,14 +121,15 @@ static void ctu_task(void *arg)
 							ESP_ERROR_CHECK(esp_event_post_to(ctu_event_loop, BOARD_EVENT, BOARD_EVENT_NEW_CARD, &card_id, sizeof(card_id), portMAX_DELAY));
 						} else {
 							/* unsupported card id data length */
-							ESP_LOGD(ctu_tag, "Card ID len: %d unsupported", ctu_id_data.len);
+							ESP_LOGD(ctu_tag, "Card ID len: %d unsupported or colision: %d", ctu_id_data.len, ctu_id_data.ptr[0]);
 						}
 					} else {
 						/* unexpected response */
 						ESP_LOGD(ctu_tag, "Unexpected response: %x", ntxfr_get_res(ntx_data));
 					}
 				} else {
-					ESP_LOGW(ctu_tag, "Received invalid frame");
+					//ESP_LOGW(ctu_tag, "Received invalid frame. cCRC: %x, hCRC: %x, len: %d", calc_crc(ntx_data), get_crc(ntx_data), get_len(ntx_data.ptr));
+					ESP_LOGW(ctu_tag, "Received invalid frame.");
 				}
 				code_pos = 0; /* load buffer again */
 			}

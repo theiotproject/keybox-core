@@ -76,7 +76,8 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 		{
 		case BOARD_EVENT_NEW_CARD: /* process code */
 		{
-			// noop
+			uint64_t *id = event_data;
+			ESP_LOGD(app_tag, "Received card ID: %llu", *id);
 			break;
 			}
 		case BOARD_EVENT_BUTTON:
