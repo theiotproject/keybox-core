@@ -90,21 +90,19 @@ void board_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(gpio_install_isr_service(0));
 	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_BUTTON_GPIO, button_gpio_isr, NULL));
 
-<<<<<<< HEAD
+    gpio_out_conf.pin_bit_mask = 1ULL<<16 | 1ULL<<17 | 1ULL<<19;
+	gpio_out_conf.mode = GPIO_MODE_INPUT;
+	gpio_out_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+	gpio_out_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+	gpio_out_conf.intr_type = GPIO_INTR_DISABLE;
+	ESP_ERROR_CHECK(gpio_config(&gpio_out_conf));
+
+	/* servo */
+	unsigned int i;
 	pwm_conf.frequency = 50; // frequency = 50Hz, i.e. for every servo motor time period should be 20ms
 	pwm_conf.cmpr_a = 0;     // duty cycle of PWMxA = 0
  	pwm_conf.counter_mode = MCPWM_UP_COUNTER;
 	pwm_conf.duty_mode = MCPWM_DUTY_MODE_0;
-=======
-    gpio_out_conf.pin_bit_mask = 1ULL<<16 | 1ULL<<17 | 1ULL<<19;
-			gpio_out_conf.mode = GPIO_MODE_INPUT;
-			gpio_out_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-			gpio_out_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-			gpio_out_conf.intr_type = GPIO_INTR_DISABLE;
-	ESP_ERROR_CHECK(gpio_config(&gpio_out_conf));
->>>>>>> eeb48b7 (First implementation of button drivers)
-	/* servo */
-	unsigned int i;
 	for (i =0 ; i < BOARD_SERVO_MAX; i++) {
 		mcpwm_gpio_init(servo_conf[i].unit, servo_conf[i].io_signal, servo_conf[i].gpio); // To drive a RC servo, one MCPWM generator is enough
 		mcpwm_init(servo_conf[i].unit, servo_conf[i].timer, &pwm_conf);
