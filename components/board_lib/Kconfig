@@ -174,22 +174,36 @@ menu "Board Library"
         help
             Button state will be sampled again after this time.
 
-    config BOARD_SERVO1_GPIO
-        int "Servo GPIO number"
+    config BOARD_SDA_GPIO
+        int "RTC SDA GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 19
+        help
+            GPIO number (IOxx) connected to RTC SDA.
+
+    config BOARD_SCL_GPIO
+        int "RTC SCL GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 21
+        help
+            GPIO number (IOxx) connected to RTC SCL.
+
+    config BOARD_SERVO_1_GPIO
+        int "Servo 1 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
         default 18
         help
             GPIO number (IOxx) connected to servo PWM line.
 
-    config BOARD_SERVO2_GPIO
-        int "Servo GPIO number"
+    config BOARD_SERVO_2_GPIO
+        int "Servo 2 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
         default 19
         help
             GPIO number (IOxx) connected to servo PWM line.
 
-    config BOARD_SERVO3_GPIO
-        int "Servo GPIO number"
+    config BOARD_SERVO_3_GPIO
+        int "Servo 3 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
         default 21
         help
