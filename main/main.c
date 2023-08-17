@@ -85,19 +85,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
             uint8_t* button = event_data;
             report_data.when = 0;
 			report_data.kind = REPORT_KIND_NEW_CARD;
-			switch(*button){
-            case 1:
-                report_data.data.card_id = 123456789;
-                break;
-            case 2:
-                report_data.data.card_id = 223456789;
-                break;
-            case 3:
-                report_data.data.card_id = 323456789;
-                break;
-            default:
-                break;
-            }
+			report_data.data.card_id = 123456789;
 			report_add(&report_data);
 			ui_rg_beep_open(UI_ACCESS_GRANTED);
             ESP_LOGD(app_tag, "button pressed: %d", *button);
