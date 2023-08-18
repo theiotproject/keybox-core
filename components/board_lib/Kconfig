@@ -170,21 +170,21 @@ menu "Board Library"
     config BOARD_BUTTON_1_GPIO
         int "Button 1 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
-        default 39
+        default 25
         help
             GPIO number (IOxx) connected to button 1.
 
     config BOARD_BUTTON_2_GPIO
         int "Button 2 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
-        default 34
+        default 26
         help
             GPIO number (IOxx) connected to button 2.
 
     config BOARD_BUTTON_3_GPIO
         int "Button 3 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
-        default 35
+        default 27
         help
             GPIO number (IOxx) connected to button 3.
 
