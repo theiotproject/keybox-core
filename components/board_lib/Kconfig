@@ -160,12 +160,33 @@ menu "Board Library"
         help
             ADC channel number c(ADC1_CHxx) connected to voltage divider.
 
-    config BOARD_BUTTON_GPIO
-        int "Button GPIO number"
+    config BOARD_ISR_GPIO
+        int "ISR GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
         default 15
         help
-            GPIO number (IOxx) connected to button.
+            GPIO number (IOxx) connected to ISR.
+
+    config BOARD_BUTTON_1_GPIO
+        int "Button 1 GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
+        default 16
+        help
+            GPIO number (IOxx) connected to button 1.
+
+    config BOARD_BUTTON_2_GPIO
+        int "Button 2 GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
+        default 17
+        help
+            GPIO number (IOxx) connected to button 2.
+
+    config BOARD_BUTTON_3_GPIO
+        int "Button 3 GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
+        default 19
+        help
+            GPIO number (IOxx) connected to button 3.
 
     config BOARD_BUTTON_DEBOUNCE
         int "Button debounce time [ms]"
@@ -191,21 +212,21 @@ menu "Board Library"
     config BOARD_SERVO_1_GPIO
         int "Servo 1 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 18
+        default 21
         help
             GPIO number (IOxx) connected to servo PWM line.
 
     config BOARD_SERVO_2_GPIO
         int "Servo 2 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 19
+        default 1
         help
             GPIO number (IOxx) connected to servo PWM line.
 
     config BOARD_SERVO_3_GPIO
         int "Servo 3 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 21
+        default 18
         help
             GPIO number (IOxx) connected to servo PWM line.
 

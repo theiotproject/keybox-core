@@ -86,11 +86,11 @@ void board_init(esp_event_loop_handle_t event_loop)
 	board_button_timer = xTimerCreate("btn", pdMS_TO_TICKS(CONFIG_BOARD_BUTTON_DEBOUNCE), pdFALSE, NULL, button_timer_cb);
 	ESP_ERROR_CHECK(board_button_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 	/* button pin ISR */
-	ESP_ERROR_CHECK(gpio_set_intr_type(CONFIG_BOARD_BUTTON_GPIO, GPIO_INTR_NEGEDGE));
+	ESP_ERROR_CHECK(gpio_set_intr_type(CONFIG_BOARD_ISR_GPIO, GPIO_INTR_NEGEDGE));
 	ESP_ERROR_CHECK(gpio_install_isr_service(0));
-	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_BUTTON_GPIO, button_gpio_isr, NULL));
+	ESP_ERROR_CHECK(gpio_isr_handler_add(CONFIG_BOARD_ISR_GPIO, button_gpio_isr, NULL));
 
-    gpio_out_conf.pin_bit_mask = 1ULL<<16 | 1ULL<<17 | 1ULL<<19;
+    gpio_out_conf.pin_bit_mask = 1ULL<<CONFIG_BOARD_BUTTON_1_GPIO | 1ULL<<CONFIG_BOARD_BUTTON_2_GPIO | 1ULL<<CONFIG_BOARD_BUTTON_3_GPIO;
 	gpio_out_conf.mode = GPIO_MODE_INPUT;
 	gpio_out_conf.pull_up_en = GPIO_PULLUP_ENABLE;
 	gpio_out_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -145,19 +145,16 @@ static void button_timer_cb(TimerHandle_t timer)
 
     static uint8_t button = 0;
 	/* send event if still pressed */
-	if(!gpio_get_level(CONFIG_BOARD_BUTTON_GPIO))
+	if(!gpio_get_level(CONFIG_BOARD_ISR_GPIO))
 	{
-        if(!gpio_get_level(16)){
+        if(!gpio_get_level(CONFIG_BOARD_BUTTON_1_GPIO)){
             button = 1;
         } else
-        if(!gpio_get_level(17)){
+        if(!gpio_get_level(CONFIG_BOARD_BUTTON_2_GPIO)){
             button = 2;
         } else
-        if(!gpio_get_level(19)){
+        if(!gpio_get_level(CONFIG_BOARD_BUTTON_3_GPIO)){
             button = 3;
-        }
-        else {
-            button = 0;
         }
 		ESP_ERROR_CHECK(esp_event_post_to(board_event_loop, BOARD_EVENT, BOARD_EVENT_BUTTON, &button, sizeof(button), 0));
 	}
