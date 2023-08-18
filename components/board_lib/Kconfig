@@ -170,21 +170,21 @@ menu "Board Library"
     config BOARD_BUTTON_1_GPIO
         int "Button 1 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
-        default 16
+        default 39
         help
             GPIO number (IOxx) connected to button 1.
 
     config BOARD_BUTTON_2_GPIO
         int "Button 2 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
-        default 17
+        default 34
         help
             GPIO number (IOxx) connected to button 2.
 
     config BOARD_BUTTON_3_GPIO
         int "Button 3 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_IN_RANGE_MAX
-        default 19
+        default 35
         help
             GPIO number (IOxx) connected to button 3.
 
@@ -212,21 +212,21 @@ menu "Board Library"
     config BOARD_SERVO_1_GPIO
         int "Servo 1 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 21
+        default 18
         help
             GPIO number (IOxx) connected to servo PWM line.
 
     config BOARD_SERVO_2_GPIO
         int "Servo 2 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 1
+        default 19
         help
             GPIO number (IOxx) connected to servo PWM line.
 
     config BOARD_SERVO_3_GPIO
         int "Servo 3 GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 18
+        default 21
         help
             GPIO number (IOxx) connected to servo PWM line.
 
