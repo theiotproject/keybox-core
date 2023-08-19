@@ -40,8 +40,6 @@ static QueueHandle_t ui_update_queue;
 static uint32_t ui_brightnesss;
 static nvs_handle_t ui_nvs_handle;
 
-static board_servo_t servo;
-
 void ui_start(void)
 {
 	BaseType_t ret;
@@ -117,7 +115,6 @@ static void ui_task(void *arg)
 			{
 					ESP_LOGD(ui_tag, "Open start");
 					board_set_relay(true);
-					board_servo_set_angle(servo%(BOARD_SERVO_MAX), CONFIG_UI_SERVO_OPEN_ANGLE);
 					ui_open_counter = OPEN_COUNTS + 1; /* decreased immediately after */
 			}
 		}
@@ -157,8 +154,6 @@ static void ui_task(void *arg)
 			{
 				ESP_LOGD(ui_tag, "Open finish");
 				board_set_relay(false);
-				board_servo_set_angle(servo%(BOARD_SERVO_MAX), CONFIG_UI_SERVO_CLOSE_ANGLE);
-        servo++;
 			}
 		}
 	}
