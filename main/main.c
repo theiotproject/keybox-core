@@ -83,6 +83,9 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 		case BOARD_EVENT_BUTTON:
             {
             uint8_t* button = event_data;
+			static int servo_1_angle = -90;
+			static int servo_2_angle = -90;
+			static int servo_3_angle = -90;
             report_data.when = 0;
 			report_data.kind = REPORT_KIND_NEW_CARD;
 			switch(*button){
@@ -100,6 +103,18 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
             }
 			report_add(&report_data);
 			ui_rg_beep_open(UI_ACCESS_GRANTED);
+			ESP_LOGI(app_tag, "angle 1: %d, angle 2: %d, angle 3: %d", servo_1_angle, servo_2_angle, servo_3_angle);
+			board_servo_set_angle(BOARD_SERVO_1, servo_1_angle);
+			board_servo_set_angle(BOARD_SERVO_2, servo_2_angle);
+			board_servo_set_angle(BOARD_SERVO_3, servo_3_angle);
+			if(servo_1_angle < 90) servo_1_angle += 30;
+			if(servo_1_angle == 90 && servo_2_angle < 90) servo_2_angle += 30;
+			if(servo_1_angle == 90 && servo_2_angle == 90) servo_3_angle += 30;
+			if(servo_1_angle == 90 && servo_2_angle == 90 && servo_3_angle > 90) {
+				servo_1_angle = -90;
+				servo_2_angle = -90;
+				servo_3_angle = -90;
+			}
             ESP_LOGD(app_tag, "button pressed: %d", *button);
             break;
             }
