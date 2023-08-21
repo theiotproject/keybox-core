@@ -6,6 +6,7 @@
 
 /* report content types */
 typedef enum {
+	REPORT_KIND_SLOT_OPEN,
 	REPORT_KIND_NEW_CARD,
 	REPORT_KIND_MAX
 } report_kind_t;
@@ -15,9 +16,8 @@ typedef struct
 {
 	report_kind_t kind;
 	time_t when;
-	union {
-			uint64_t card_id;
-	} data;
+	uint64_t card_id;
+	uint8_t slot_id;
 } report_data_t;
 
 void report_start(const esp_partition_t *partition);

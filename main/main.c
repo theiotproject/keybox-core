@@ -120,25 +120,30 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				{
 					uint8_t* button = event_data;
             		report_data.when = 0;
-					report_data.kind = REPORT_KIND_NEW_CARD;
 					switch(*button)
 					{
             			case 1:
 							servo = 0;
-                			report_data.data.card_id = 123456789;
+                			report_data.card_id = 123456789;
+							report_data.slot_id = 1;
                 			break;
             			case 2:
 							servo = 1;
-                			report_data.data.card_id = 223456789;
+                			report_data.card_id = 223456789;
+							report_data.slot_id = 2;
                 			break;
             			case 3:
 							servo = 2;
-                			report_data.data.card_id = 323456789;
+                			report_data.card_id = 323456789;
+							report_data.slot_id = 3;
                 			break;
             			default:
                 			break;
             		}
 					board_servo_set_angle(servo, CONFIG_UI_SERVO_OPEN_ANGLE);
+					report_data.kind = REPORT_KIND_SLOT_OPEN;
+					report_add(&report_data);
+					report_data.kind = REPORT_KIND_NEW_CARD;
 					report_add(&report_data);
             		ESP_LOGD(app_tag, "button pressed: %d", *button);
             		break;
