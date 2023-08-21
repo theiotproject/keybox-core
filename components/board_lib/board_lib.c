@@ -31,6 +31,7 @@ ESP_EVENT_DEFINE_BASE(BOARD_EVENT);
 
 static void button_gpio_isr(void* arg);
 static void button_timer_cb(TimerHandle_t timer);
+static void servo_close_cb(TimerHandle_t timer);
 
 static esp_event_loop_handle_t board_event_loop;
 TimerHandle_t board_button_timer;
@@ -108,6 +109,7 @@ void board_init(esp_event_loop_handle_t event_loop)
 		mcpwm_init(servo_conf[i].unit, servo_conf[i].timer, &pwm_conf);
 		ESP_ERROR_CHECK(mcpwm_set_duty_in_us(servo_conf[i].unit, servo_conf[i].timer, servo_conf[i].gen, convert_servo_angle_to_duty_us(CONFIG_BOARD_SERVO_INIT_ANGLE)));
 	}
+
 }
 
 /* buzzer on/off control */
@@ -147,13 +149,16 @@ static void button_timer_cb(TimerHandle_t timer)
 	/* send event if still pressed */
 	if(!gpio_get_level(CONFIG_BOARD_ISR_GPIO))
 	{
-        if(!gpio_get_level(CONFIG_BOARD_BUTTON_1_GPIO)){
+        if(!gpio_get_level(CONFIG_BOARD_BUTTON_1_GPIO))
+		{
             button = 1;
-        } else
-        if(!gpio_get_level(CONFIG_BOARD_BUTTON_2_GPIO)){
+        } 
+		else if(!gpio_get_level(CONFIG_BOARD_BUTTON_2_GPIO))
+		{
             button = 2;
-        } else
-        if(!gpio_get_level(CONFIG_BOARD_BUTTON_3_GPIO)){
+        } 
+		else if(!gpio_get_level(CONFIG_BOARD_BUTTON_3_GPIO))
+		{
             button = 3;
         }
 		ESP_ERROR_CHECK(esp_event_post_to(board_event_loop, BOARD_EVENT, BOARD_EVENT_BUTTON, &button, sizeof(button), 0));

@@ -3,6 +3,7 @@
 #include <time.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/timers.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "nvs.h"
@@ -17,9 +18,14 @@
 static const char *app_tag = "app";
 
 static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
+static void servo_close_cb(TimerHandle_t timer);
 
 const esp_partition_t *app_fring_partition;
 static esp_event_loop_handle_t app_event_loop;
+
+static bool is_access_granted = false;
+TimerHandle_t servo_close_timer;
+static board_servo_t servo;
 
 void app_main(void)
 {
@@ -27,11 +33,11 @@ void app_main(void)
 
 	/* main application event loop */
 	const esp_event_loop_args_t loop_args = {
-			.queue_size = 16,
-			.task_name = "app_ev_loop",
-			.task_priority = TP_MAIN,
-			.task_stack_size = 4096 + configMINIMAL_STACK_SIZE,
-			.task_core_id = tskNO_AFFINITY
+		.queue_size = 16,
+		.task_name = "app_ev_loop",
+		.task_priority = TP_MAIN,
+		.task_stack_size = 4096 + configMINIMAL_STACK_SIZE,
+		.task_core_id = tskNO_AFFINITY
 	};
 	/* application events */
 	ESP_ERROR_CHECK(esp_event_loop_create(&loop_args, &app_event_loop));
@@ -42,7 +48,8 @@ void app_main(void)
 	ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, app_event_cb, NULL, NULL));
 	/* NVS for settings storage */
 	ret = nvs_flash_init();
-	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) 
+	{
 		ESP_LOGI(app_tag, "NVS init erase");
 		ESP_ERROR_CHECK(nvs_flash_erase());
 		ret = nvs_flash_init();
@@ -56,6 +63,18 @@ void app_main(void)
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
+	
+	// create timer which wait 3 secs and close servos
+	servo_close_timer = xTimerCreate("servo", pdMS_TO_TICKS(3000), pdFALSE, NULL, servo_close_cb);
+	ESP_ERROR_CHECK(servo_close_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
+}
+
+static void servo_close_cb(TimerHandle_t timer)
+{
+	(void) timer;
+	board_servo_set_angle(servo, CONFIG_UI_SERVO_CLOSE_ANGLE);
+	is_access_granted = false;
+	ESP_LOGD(app_tag, "Slot close");
 }
 
 /* executed by the application loop task */
@@ -74,49 +93,56 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	{
 		switch(event_id)
 		{
-		case BOARD_EVENT_NEW_CARD: /* process code */
-		{
-			uint64_t *id = event_data;
-			ESP_LOGD(app_tag, "Received card ID: %llu", *id);
-			break;
+			case BOARD_EVENT_NEW_CARD: /* process code */
+			{
+				// recived valid CTU card ID
+				uint64_t *id = event_data;
+				ESP_LOGD(app_tag, "Received card ID: %llu", *id);
+				// hardcoded known card
+				if (*id == 60348435210)
+				{
+					is_access_granted = true;
+					ui_rg_beep_open(UI_ACCESS_GRANTED);
+				}
+				else
+				{
+					ui_rg_beep_open(UI_ACCESS_DENIED);
+					is_access_granted = false;
+				}
+				break;
 			}
-		case BOARD_EVENT_BUTTON:
-            {
-            uint8_t* button = event_data;
-			static int servo_1_angle = -90;
-			static int servo_2_angle = -90;
-			static int servo_3_angle = -90;
-            report_data.when = 0;
-			report_data.kind = REPORT_KIND_NEW_CARD;
-			switch(*button){
-            case 1:
-                report_data.data.card_id = 123456789;
-                break;
-            case 2:
-                report_data.data.card_id = 223456789;
-                break;
-            case 3:
-                report_data.data.card_id = 323456789;
-                break;
-            default:
-                break;
-            }
-			report_add(&report_data);
-			ui_rg_beep_open(UI_ACCESS_GRANTED);
-			ESP_LOGI(app_tag, "angle 1: %d, angle 2: %d, angle 3: %d", servo_1_angle, servo_2_angle, servo_3_angle);
-			board_servo_set_angle(BOARD_SERVO_1, servo_1_angle);
-			board_servo_set_angle(BOARD_SERVO_2, servo_2_angle);
-			board_servo_set_angle(BOARD_SERVO_3, servo_3_angle);
-			if(servo_1_angle < 90) servo_1_angle += 30;
-			if(servo_1_angle == 90 && servo_2_angle < 90) servo_2_angle += 30;
-			if(servo_1_angle == 90 && servo_2_angle == 90) servo_3_angle += 30;
-			if(servo_1_angle == 90 && servo_2_angle == 90 && servo_3_angle > 90) {
-				servo_1_angle = -90;
-				servo_2_angle = -90;
-				servo_3_angle = -90;
-			}
-            ESP_LOGD(app_tag, "button pressed: %d", *button);
-            break;
+			case BOARD_EVENT_BUTTON:
+        	{
+				// start waiting for slot choice
+				xTimerStart(servo_close_timer, 0);
+				ESP_LOGD(app_tag, "Access to slot %s", is_access_granted ? "granted": "denied");
+				if (is_access_granted)
+				{
+					uint8_t* button = event_data;
+            		report_data.when = 0;
+					report_data.kind = REPORT_KIND_NEW_CARD;
+					switch(*button)
+					{
+            			case 1:
+							servo = 0;
+                			report_data.data.card_id = 123456789;
+                			break;
+            			case 2:
+							servo = 1;
+                			report_data.data.card_id = 223456789;
+                			break;
+            			case 3:
+							servo = 2;
+                			report_data.data.card_id = 323456789;
+                			break;
+            			default:
+                			break;
+            		}
+					board_servo_set_angle(servo, CONFIG_UI_SERVO_OPEN_ANGLE);
+					report_add(&report_data);
+            		ESP_LOGD(app_tag, "button pressed: %d", *button);
+            		break;
+				}
             }
 		}
 		return;
