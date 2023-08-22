@@ -25,6 +25,7 @@ static esp_event_loop_handle_t app_event_loop;
 
 static bool is_access_granted = false;
 TimerHandle_t servo_close_timer;
+
 static board_servo_t servo;
 
 void app_main(void)
@@ -88,6 +89,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	char *time_str;
 	report_data_t report_data;
 	(void)event_handler_arg;
+	static uint64_t received_card_id = 0;
 
 	if(event_base == BOARD_EVENT)
 	{
@@ -96,10 +98,11 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 			case BOARD_EVENT_NEW_CARD: /* process code */
 			{
 				// recived valid CTU card ID
-				uint64_t *id = event_data;
-				ESP_LOGD(app_tag, "Received card ID: %llu", *id);
+				uint64_t *event_card_id = event_data;
+				received_card_id = *event_card_id;
+				ESP_LOGD(app_tag, "Received card ID: %llu", received_card_id);
 				// hardcoded known card
-				if (*id == 60348435210)
+				if (received_card_id == 60348435210)
 				{
 					is_access_granted = true;
 					ui_rg_beep_open(UI_ACCESS_GRANTED);
@@ -116,25 +119,27 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				// start waiting for slot choice
 				xTimerStart(servo_close_timer, 0);
 				ESP_LOGD(app_tag, "Access to slot %s", is_access_granted ? "granted": "denied");
+				uint8_t *button = event_data;
+				ESP_LOGD(app_tag, "CARD ID: %llu", received_card_id);
+
 				if (is_access_granted)
 				{
-					uint8_t* button = event_data;
             		report_data.when = 0;
 					switch(*button)
 					{
             			case 1:
 							servo = 0;
-                			report_data.card_id = 123456789;
+                			report_data.card_id = received_card_id;
 							report_data.slot_id = 1;
                 			break;
             			case 2:
 							servo = 1;
-                			report_data.card_id = 223456789;
+                			report_data.card_id = received_card_id;
 							report_data.slot_id = 2;
                 			break;
             			case 3:
 							servo = 2;
-                			report_data.card_id = 323456789;
+                			report_data.card_id = received_card_id;
 							report_data.slot_id = 3;
                 			break;
             			default:
@@ -145,9 +150,9 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 					report_add(&report_data);
 					report_data.kind = REPORT_KIND_NEW_CARD;
 					report_add(&report_data);
-            		ESP_LOGD(app_tag, "button pressed: %d", *button);
-            		break;
 				}
+            	ESP_LOGD(app_tag, "button pressed: %d", *button);
+            	break;
             }
 		}
 		return;
