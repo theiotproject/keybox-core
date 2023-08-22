@@ -14,6 +14,7 @@
 #include "ui_manager.h"
 #include "cloud_manager.h"
 #include "report_manager.h"
+#include "access_manager.h"
 
 static const char *app_tag = "app";
 
@@ -25,7 +26,6 @@ static esp_event_loop_handle_t app_event_loop;
 
 static bool is_access_granted = false;
 TimerHandle_t servo_close_timer;
-
 static board_servo_t servo;
 
 void app_main(void)
@@ -64,6 +64,7 @@ void app_main(void)
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
+	access_init(); /* all nvs inits */ 
 	
 	// create timer which wait 3 secs and close servos
 	servo_close_timer = xTimerCreate("servo", pdMS_TO_TICKS(3000), pdFALSE, NULL, servo_close_cb);
@@ -103,7 +104,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				ESP_LOGD(app_tag, "Received card ID: %llu", received_card_id);
 				// hardcoded known card
 				if (received_card_id == 60348435210)
-				{
+				{	
 					is_access_granted = true;
 					ui_rg_beep_open(UI_ACCESS_GRANTED);
 				}
@@ -120,8 +121,6 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				xTimerStart(servo_close_timer, 0);
 				ESP_LOGD(app_tag, "Access to slot %s", is_access_granted ? "granted": "denied");
 				uint8_t *button = event_data;
-				ESP_LOGD(app_tag, "CARD ID: %llu", received_card_id);
-
 				if (is_access_granted)
 				{
             		report_data.when = 0;

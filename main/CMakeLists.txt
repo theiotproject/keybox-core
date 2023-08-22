@@ -3,5 +3,6 @@ idf_component_register(SRCS "main.c"
                             "ui_manager.c"
                             "cloud_manager.c"
                             "report_manager.c"
+                            "access_manager.c"
                             "version.c"
                     INCLUDE_DIRS ".")
