@@ -205,6 +205,7 @@ static void cloud_client_cb(golioth_client_t client, golioth_client_event_t even
 		ESP_LOGI(cloud_tag, "Connected");
 		ESP_ERROR_CHECK(esp_event_post_to(cloud_event_loop, CLOUD_EVENT, CLOUD_EVENT_CONNECTED, NULL, 0, portMAX_DELAY));
 		xEventGroupSetBits(cloud_event_group, CLOUD_EV_CONNECT_BIT);
+		//client->on_connect = cloud_update_access;
 		break;
 	case GOLIOTH_CLIENT_EVENT_DISCONNECTED:
 		ESP_LOGI(cloud_tag, "Disconnected");
@@ -275,3 +276,21 @@ static golioth_status_t cloud_report_exec(report_data_t *report)
 	free(buf);
 	return(ret);
 }
+
+/* regisers cb for fetching data on each connection to cloud as well as every change in database */
+// 1. pobiera dane o kartach z nvs
+
+// strcpy(cloud_id, id);
+// 		ESP_ERROR_CHECK(nvs_set_str(cloud_nvs_handle, "id", id));
+// 		strcpy(cloud_psk, psk);
+// 		ESP_ERROR_CHECK(nvs_set_str(cloud_nvs_handle, "psk", psk));
+// 		ESP_ERROR_CHECK(nvs_commit(cloud_nvs_handle));
+
+// static void cloud_update_access(golioth_client_t client)
+// {
+// 	golioth_status_t ret;
+// 	ret = golioth_lightdb_observe_async(&client, "/[id karty]", jakis_callback, argumenty_callbacka);
+
+// 	if (ret != GOLIOTH_OK)
+// 		ESP_LOGE("failed to observe lightdb path");
+// }
