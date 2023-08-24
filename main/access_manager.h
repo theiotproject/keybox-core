@@ -2,6 +2,8 @@
 #define KEY_SCANNER_ESP32_ACCESS_MANAGER_H
 
 #include <stdbool.h>
+#include <stdint.h>
+#include "nvs.h"
 
 // 0..4 (card id), 5 (slots) 
 typedef union {
@@ -18,5 +20,9 @@ typedef enum {
 } acl_byte_map;
 
 void access_init();
+bool access_check_card_id_in_nvs(uint64_t card_id);
+void access_fill_with_zeros_acl(void);
+esp_err_t access_get_acl_in_nvs(void);
+esp_err_t access_set_acl_in_nvs(void);
 
 #endif //KEY_SCANNER_ESP32_ACCESS_MANAGER_H

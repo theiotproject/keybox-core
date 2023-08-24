@@ -103,7 +103,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				received_card_id = *event_card_id;
 				ESP_LOGD(app_tag, "Received card ID: %llu", received_card_id);
 				// hardcoded known card
-				if (received_card_id == 60348435210)
+				if (access_check_card_id_in_nvs(received_card_id))
 				{	
 					is_access_granted = true;
 					ui_rg_beep_open(UI_ACCESS_GRANTED);
