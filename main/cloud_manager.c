@@ -292,7 +292,7 @@ void cloud_update_access(golioth_client_t client)
 		ESP_LOGE(cloud_tag, "Could not observe acl path");
 		return;
 	}
-	ESP_LOGI(cloud_tag, "Path 'acl' added to LightDB observe");
+	ESP_LOGI(cloud_tag, "Path acl added to LightDB observe");
 }
 
 static void cloud_parse_acl_cb(golioth_client_t client, const golioth_response_t *response, const char *path, const char *payload, size_t payload_size, void *arg)
@@ -301,31 +301,31 @@ static void cloud_parse_acl_cb(golioth_client_t client, const golioth_response_t
 
 	if (response->status != GOLIOTH_OK)
 	{
-		ESP_LOGE(cloud_tag, "Error while updating 'acl'");
+		ESP_LOGE(cloud_tag, "Error while updating acl");
 		return;
 	}
 
-	ESP_LOGD(cloud_tag, "'acl' JSON payload: %s", payload);
+	ESP_LOGD(cloud_tag, "acl JSON payload: %s", payload);
    	cJSON *acl = cJSON_Parse(payload);
     if (acl != NULL && cJSON_IsArray(acl)) 
 	{
 		access_fill_with_zeros_acl();
         uint8_t i, acl_counter = cJSON_GetArraySize(acl);
-		ESP_LOGD(cloud_tag, "'acl' size: %d", acl_counter);
+		ESP_LOGD(cloud_tag, "acl size: %d", acl_counter);
         for (i = 0; i < acl_counter; i++) 
 		{
             cJSON *acl_item = cJSON_GetArrayItem(acl, i);
             if (acl_item != NULL && cJSON_IsString(acl_item)) 
 			{
                 char *acl_item_str = cJSON_GetStringValue(acl_item);
-                ESP_LOGD(cloud_tag, "'acl' entry: %s", acl_item_str);
+                ESP_LOGD(cloud_tag, "acl entry: %s", acl_item_str);
 				/* parsing "hex_card_id:privilege_to_slots" format */
 				char *hex_card_id_str = strtok(acl_item_str, ":");
 				char *hex_privilage_to_slots_str = strtok(NULL, ":");
-				ESP_LOGD(cloud_tag, "'acl' parsed to str: %s, %s", hex_card_id_str, hex_privilage_to_slots_str);
+				ESP_LOGD(cloud_tag, "acl parsed to str: %s, %s", hex_card_id_str, hex_privilage_to_slots_str);
 				uint64_t card_id = strtoll(hex_card_id_str, NULL, 16);
 				uint8_t privilage_to_slots = strtol(hex_privilage_to_slots_str, NULL, 16);
-				ESP_LOGD(cloud_tag, "'acl' parsed to int: %llu, %d", card_id, privilage_to_slots);
+				ESP_LOGD(cloud_tag, "acl parsed to int: %llu, %d", card_id, privilage_to_slots);
 				/* save card_id and privilage_to_slots */	
 				access_save_card_id_in_ram(card_id, privilage_to_slots);
             }
