@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include "nvs.h"
 
-// 0..4 (card id), 5 (slots) 
 typedef union {
     uint8_t data[6];
 } ac_t;
@@ -20,9 +19,10 @@ typedef enum {
 } acl_byte_map;
 
 void access_init();
-bool access_check_card_id_in_nvs(uint64_t card_id);
+bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots);
+void access_save_card_id_in_nvs(uint64_t card_id, uint8_t privilege_to_slots);
 void access_fill_with_zeros_acl(void);
-esp_err_t access_get_acl_in_nvs(void);
+esp_err_t access_get_acl_from_nvs(void);
 esp_err_t access_set_acl_in_nvs(void);
 
 #endif //KEY_SCANNER_ESP32_ACCESS_MANAGER_H

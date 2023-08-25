@@ -21,47 +21,57 @@ void access_init()
 		return;
 	}
     ESP_LOGI(access_tag, "Successfuly initialized Access to NVS");
+    
+    /* ONLY FOR TESTS */
     access_fill_with_zeros_acl();
     access_set_acl_in_nvs();
 }
 
-bool access_check_card_id_in_nvs(uint64_t card_id)
+bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots)
 {
+    ESP_LOGI(access_tag, "Checking card in nvs");
     int8_t i, j;
-    
-    ESP_LOGD(access_tag, "Checking card in NVS");
-    /* check if card is in nvs */
     for (i = 0; i < acl_counter; i++)
     {
-        uint64_t known_card_id = 0;
+        uint64_t nvs_card_id = 0;
         for (j = 4; j >= 0; j--)
         {
-            known_card_id = (known_card_id << 8) | acl[i].data[j]; // compress each byte of the known card id in nvs
+            /* compress each byte of the known card id in nvs */
+            nvs_card_id = (nvs_card_id << 8) | acl[i].data[j]; 
         }
-        ESP_LOGD(access_tag, "new card ID: %llu, known card ID: %llu", card_id, known_card_id);
         
-        if (known_card_id == card_id)
+        if (nvs_card_id == card_id)
         {
-            ESP_LOGD(access_tag, "Found card in NVS");
+            ESP_LOGI(access_tag, "Found card in nvs");
+            if (!privilege_to_slots)
+            {
+                ESP_LOGE(access_tag, "Could not get privilege to slots");
+                return false;
+            }
+
+            *privilege_to_slots = acl[i].data[SLOTS_BYTE];
             return true;
         }
     }
 
-    ESP_LOGD(access_tag, "Card not found, saving card in NVS");
-    /* save new card in acl */
-    for (i = 0; i < 5; i++) 
-    {
-        acl[acl_counter].data[i] = (uint8_t)(card_id >> (8 * i)); // extract each byte of the card id
-    }
-    acl[acl_counter].data[SLOTS_BYTE] = 0x0;
-    acl_counter++;
-    
+    ESP_LOGI(access_tag, "Could not find card in nvs");
     return false;
 }
 
+void access_save_card_id_in_nvs(uint64_t card_id, uint8_t privilege_to_slots)
+{
+    ESP_LOGI(access_tag, "Saving card in nvs");
+    int8_t i;
+    for (i = 0; i < 5; i++) 
+    {
+        /* extract each byte of the card id */
+        acl[acl_counter].data[i] = (uint8_t)(card_id >> (8 * i)); 
+    }
+    acl[acl_counter].data[SLOTS_BYTE] = privilege_to_slots;
+    acl_counter++;
+}
 
-/* get state of card id acl blob with acl counter */
-esp_err_t access_get_acl_in_nvs(void)
+esp_err_t access_get_acl_from_nvs(void)
 {
     result = nvs_get_u8(access_nvs_handle, "acl_counter", &acl_counter);
     if(result != ESP_OK)
@@ -80,13 +90,12 @@ esp_err_t access_get_acl_in_nvs(void)
     size_t i;
     for (i = 0; i < acl_size; i++)
     {
-        ESP_LOGD(access_tag, "acl id: %d, bytes: %d, %d, %d, %d, %d", i, acl[i].data[CARD_ID_BYTE_0], acl[i].data[CARD_ID_BYTE_1], acl[i].data[CARD_ID_BYTE_2], acl[i].data[CARD_ID_BYTE_3], acl[i].data[CARD_ID_BYTE_4]);
+        ESP_LOGD(access_tag, "acl id: %d, card ID: %x, %x, %x, %x, %x, slots: %x", i, acl[i].data[CARD_ID_BYTE_0], acl[i].data[CARD_ID_BYTE_1], acl[i].data[CARD_ID_BYTE_2], acl[i].data[CARD_ID_BYTE_3], acl[i].data[CARD_ID_BYTE_4], acl[i].data[SLOTS_BYTE]);
     } 
 
     return result;
 }
 
-/* save current state of card id acl blob with acl counter */
 esp_err_t access_set_acl_in_nvs(void)
 {
     result = nvs_set_u8(access_nvs_handle, "acl_counter", acl_counter);

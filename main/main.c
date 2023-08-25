@@ -24,7 +24,7 @@ static void servo_close_cb(TimerHandle_t timer);
 const esp_partition_t *app_fring_partition;
 static esp_event_loop_handle_t app_event_loop;
 
-static bool is_access_granted = false;
+static uint8_t privilege_to_slots = 0x00;
 TimerHandle_t servo_close_timer;
 static board_servo_t servo;
 
@@ -75,7 +75,7 @@ static void servo_close_cb(TimerHandle_t timer)
 {
 	(void) timer;
 	board_servo_set_angle(servo, CONFIG_UI_SERVO_CLOSE_ANGLE);
-	is_access_granted = false;
+	privilege_to_slots = 0x00;
 	ESP_LOGD(app_tag, "Slot close");
 }
 
@@ -102,28 +102,32 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				uint64_t *event_card_id = event_data;
 				received_card_id = *event_card_id;
 				ESP_LOGD(app_tag, "Received card ID: %llu", received_card_id);
-				// hardcoded known card
-				if (access_check_card_id_in_nvs(received_card_id))
+
+				if (access_find_card_id_in_nvs(received_card_id, &privilege_to_slots))
 				{	
-					is_access_granted = true;
 					ui_rg_beep_open(UI_ACCESS_GRANTED);
 				}
 				else
 				{
 					ui_rg_beep_open(UI_ACCESS_DENIED);
-					is_access_granted = false;
+					access_save_card_id_in_nvs(received_card_id, 0x05);
 				}
+				access_set_acl_in_nvs();
+				access_get_acl_from_nvs();
 				break;
 			}
 			case BOARD_EVENT_BUTTON:
         	{
-				// start waiting for slot choice
+				/* start waiting for slot choice */
 				xTimerStart(servo_close_timer, 0);
-				ESP_LOGD(app_tag, "Access to slot %s", is_access_granted ? "granted": "denied");
 				uint8_t *button = event_data;
-				if (is_access_granted)
+            	ESP_LOGD(app_tag, "Button pressed: %d", *button);
+				ESP_LOGD(app_tag, "Privilege slots: %d", privilege_to_slots);
+				uint8_t button_bit_mask = 0b00000001 << ((*button) - 1);
+				if (button_bit_mask & privilege_to_slots)
 				{
             		report_data.when = 0;
+					/* check access to slots */
 					switch(*button)
 					{
             			case 1:
