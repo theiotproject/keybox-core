@@ -154,7 +154,6 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 					report_data.kind = REPORT_KIND_NEW_CARD;
 					report_add(&report_data);
 				}
-            	ESP_LOGD(app_tag, "button pressed: %d", *button);
             	break;
             }
 		}
