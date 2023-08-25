@@ -110,9 +110,9 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				else
 				{
 					ui_rg_beep_open(UI_ACCESS_DENIED);
-					access_save_card_id_in_nvs(received_card_id, 0x05);
+					// access_save_card_id_in_ram(received_card_id, 0x05);
 				}
-				access_set_acl_in_nvs();
+				// access_set_acl_in_nvs();
 				access_get_acl_from_nvs();
 				break;
 			}

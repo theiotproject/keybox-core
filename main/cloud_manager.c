@@ -1,4 +1,6 @@
 #include <string.h>
+#include <stdlib.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/event_groups.h"
@@ -7,6 +9,7 @@
 #include "nvs.h"
 #include "golioth.h"
 #include "cloud_manager.h"
+#include "access_manager.h"
 #include "version.h"
 
 #define CLOUD_EV_CONNECT_BIT BIT(0)
@@ -306,6 +309,7 @@ static void cloud_parse_acl_cb(golioth_client_t client, const golioth_response_t
    	cJSON *acl = cJSON_Parse(payload);
     if (acl != NULL && cJSON_IsArray(acl)) 
 	{
+		access_fill_with_zeros_acl();
         uint8_t i, acl_counter = cJSON_GetArraySize(acl);
 		ESP_LOGD(cloud_tag, "'acl' size: %d", acl_counter);
         for (i = 0; i < acl_counter; i++) 
@@ -313,12 +317,21 @@ static void cloud_parse_acl_cb(golioth_client_t client, const golioth_response_t
             cJSON *acl_item = cJSON_GetArrayItem(acl, i);
             if (acl_item != NULL && cJSON_IsString(acl_item)) 
 			{
-                const char *acl_str = cJSON_GetStringValue(acl_item);
-                ESP_LOGD(cloud_tag, "'acl' entry: %s", acl_str);
+                char *acl_item_str = cJSON_GetStringValue(acl_item);
+                ESP_LOGD(cloud_tag, "'acl' entry: %s", acl_item_str);
+				/* parsing "hex_card_id:privilege_to_slots" format */
+				char *hex_card_id_str = strtok(acl_item_str, ":");
+				char *hex_privilage_to_slots_str = strtok(NULL, ":");
+				ESP_LOGD(cloud_tag, "'acl' parsed to str: %s, %s", hex_card_id_str, hex_privilage_to_slots_str);
+				uint64_t card_id = strtoll(hex_card_id_str, NULL, 16);
+				uint8_t privilage_to_slots = strtol(hex_privilage_to_slots_str, NULL, 16);
+				ESP_LOGD(cloud_tag, "'acl' parsed to int: %llu, %d", card_id, privilage_to_slots);
+				/* save card_id and privilage_to_slots */	
+				access_save_card_id_in_ram(card_id, privilage_to_slots);
             }
         }
     }
-
+	access_set_acl_in_nvs();
     cJSON_Delete(acl);
     return; 
 }

@@ -21,10 +21,9 @@ void access_init()
 		return;
 	}
     ESP_LOGI(access_tag, "Successfuly initialized Access to NVS");
-    
-    /* ONLY FOR TESTS */
-    access_fill_with_zeros_acl();
-    access_set_acl_in_nvs();
+
+    /* load acl from NVS */ 
+    access_get_acl_from_nvs();
 }
 
 bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots)
@@ -58,9 +57,9 @@ bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots)
     return false;
 }
 
-void access_save_card_id_in_nvs(uint64_t card_id, uint8_t privilege_to_slots)
+void access_save_card_id_in_ram(uint64_t card_id, uint8_t privilege_to_slots)
 {
-    ESP_LOGI(access_tag, "Saving card in nvs");
+    ESP_LOGI(access_tag, "Saving card in ram");
     int8_t i;
     for (i = 0; i < 5; i++) 
     {
@@ -73,6 +72,7 @@ void access_save_card_id_in_nvs(uint64_t card_id, uint8_t privilege_to_slots)
 
 esp_err_t access_get_acl_from_nvs(void)
 {
+    ESP_LOGI(access_tag, "Fetching acl from nvs");
     result = nvs_get_u8(access_nvs_handle, "acl_counter", &acl_counter);
     if(result != ESP_OK)
     {
@@ -98,6 +98,7 @@ esp_err_t access_get_acl_from_nvs(void)
 
 esp_err_t access_set_acl_in_nvs(void)
 {
+    ESP_LOGI(access_tag, "Saving acl in NVS");
     result = nvs_set_u8(access_nvs_handle, "acl_counter", acl_counter);
     if(result != ESP_OK)
     {

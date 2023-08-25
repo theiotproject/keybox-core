@@ -20,7 +20,7 @@ typedef enum {
 
 void access_init();
 bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots);
-void access_save_card_id_in_nvs(uint64_t card_id, uint8_t privilege_to_slots);
+void access_save_card_id_in_ram(uint64_t card_id, uint8_t privilege_to_slots);
 void access_fill_with_zeros_acl(void);
 esp_err_t access_get_acl_from_nvs(void);
 esp_err_t access_set_acl_in_nvs(void);
