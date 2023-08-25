@@ -32,6 +32,5 @@ void cloud_join(char *id, char *psk);
 void cloud_leave(void);
 void cloud_log(const char *tag, const char *format, ...);
 void cloud_report(report_data_t *report);
-// static void cloud_update_access(golioth_client_t client);
 
 #endif /* MAIN_CLOUD_MANAGER_H_ */

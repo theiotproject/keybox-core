@@ -14,6 +14,9 @@
 #define CLOUD_FORM_NEW_CARD(r) "%llu,%llu", (uint64_t)(r)->when, (r)->card_id
 #define CLOUD_FORM_SLOT_OPEN(r) "%llu,%llu,%d", (uint64_t)(r)->when, (r)->card_id, (r)->slot_id
 
+void cloud_update_access(golioth_client_t client);
+static void cloud_parse_acl_cb(golioth_client_t client, const golioth_response_t *rsp, const char *path, const  char *payload, size_t payload_size, void *arg);
+
 typedef struct {
 		const char *name;
 		cloud_event_t event;
@@ -205,7 +208,8 @@ static void cloud_client_cb(golioth_client_t client, golioth_client_event_t even
 		ESP_LOGI(cloud_tag, "Connected");
 		ESP_ERROR_CHECK(esp_event_post_to(cloud_event_loop, CLOUD_EVENT, CLOUD_EVENT_CONNECTED, NULL, 0, portMAX_DELAY));
 		xEventGroupSetBits(cloud_event_group, CLOUD_EV_CONNECT_BIT);
-		//client->on_connect = cloud_update_access;
+		/* update data from LightDB state on connection or if data changes */
+		cloud_update_access(client);
 		break;
 	case GOLIOTH_CLIENT_EVENT_DISCONNECTED:
 		ESP_LOGI(cloud_tag, "Disconnected");
@@ -277,20 +281,44 @@ static golioth_status_t cloud_report_exec(report_data_t *report)
 	return(ret);
 }
 
-/* regisers cb for fetching data on each connection to cloud as well as every change in database */
-// 1. pobiera dane o kartach z nvs
+void cloud_update_access(golioth_client_t client)
+{
+	golioth_status_t ret = golioth_lightdb_observe_async(client, "acl", (void*) cloud_parse_acl_cb, NULL);
+	if (ret != GOLIOTH_OK)
+	{
+		ESP_LOGE(cloud_tag, "Could not observe acl path");
+		return;
+	}
+	ESP_LOGI(cloud_tag, "Path 'acl' added to LightDB observe");
+}
 
-// strcpy(cloud_id, id);
-// 		ESP_ERROR_CHECK(nvs_set_str(cloud_nvs_handle, "id", id));
-// 		strcpy(cloud_psk, psk);
-// 		ESP_ERROR_CHECK(nvs_set_str(cloud_nvs_handle, "psk", psk));
-// 		ESP_ERROR_CHECK(nvs_commit(cloud_nvs_handle));
+static void cloud_parse_acl_cb(golioth_client_t client, const golioth_response_t *response, const char *path, const char *payload, size_t payload_size, void *arg)
+{
+	(void)arg;
 
-// static void cloud_update_access(golioth_client_t client)
-// {
-// 	golioth_status_t ret;
-// 	ret = golioth_lightdb_observe_async(&client, "/[id karty]", jakis_callback, argumenty_callbacka);
+	if (response->status != GOLIOTH_OK)
+	{
+		ESP_LOGE(cloud_tag, "Error while updating 'acl'");
+		return;
+	}
 
-// 	if (ret != GOLIOTH_OK)
-// 		ESP_LOGE("failed to observe lightdb path");
-// }
+	ESP_LOGD(cloud_tag, "'acl' JSON payload: %s", payload);
+   	cJSON *acl = cJSON_Parse(payload);
+    if (acl != NULL && cJSON_IsArray(acl)) 
+	{
+        uint8_t i, acl_counter = cJSON_GetArraySize(acl);
+		ESP_LOGD(cloud_tag, "'acl' size: %d", acl_counter);
+        for (i = 0; i < acl_counter; i++) 
+		{
+            cJSON *acl_item = cJSON_GetArrayItem(acl, i);
+            if (acl_item != NULL && cJSON_IsString(acl_item)) 
+			{
+                const char *acl_str = cJSON_GetStringValue(acl_item);
+                ESP_LOGD(cloud_tag, "'acl' entry: %s", acl_str);
+            }
+        }
+    }
+
+    cJSON_Delete(acl);
+    return; 
+}
