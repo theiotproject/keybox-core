@@ -2,14 +2,14 @@
 #include "esp_log.h"
 #include "nvs.h"
 
-#define ACL_SIZE 100
+#define ACL_LEN 100
 
 static const char *access_tag = "access";
 static nvs_handle_t access_nvs_handle;
 esp_err_t result;
 
-static size_t acl_size = sizeof(ac_t) * ACL_SIZE;
-ac_t acl[ACL_SIZE];
+static size_t acl_size = sizeof(ac_t) * ACL_LEN;
+ac_t acl[ACL_LEN];
 static uint8_t acl_counter;
 
 void access_init()
@@ -67,7 +67,7 @@ void access_save_card_id_in_ram(uint64_t card_id, uint8_t privilege_to_slots)
         acl[acl_counter].data[i] = (uint8_t)(card_id >> (8 * i)); 
     }
 
-    if (acl_counter < acl_size)
+    if (acl_counter < ACL_LEN)
     {
         acl[acl_counter].data[SLOTS_BYTE] = privilege_to_slots;
         acl_counter++;
@@ -123,7 +123,7 @@ esp_err_t access_set_acl_in_nvs(void)
 void access_fill_with_zeros_acl(void)
 {
     size_t i;
-    for (i = 0; i < acl_size; i++)
+    for (i = 0; i < ACL_LEN; i++)
     {
         acl[i].data[CARD_ID_BYTE_0] = 0x00;
         acl[i].data[CARD_ID_BYTE_1] = 0x00;
