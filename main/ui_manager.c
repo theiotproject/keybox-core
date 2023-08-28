@@ -113,9 +113,9 @@ static void ui_task(void *arg)
 			/* control output enable, limit duty cycle within a defined period */
 			if(update_msg.item_map & BIT(UI_ITEM_OPEN))
 			{
-					ESP_LOGD(ui_tag, "Open start");
-					board_set_relay(true);
-					ui_open_counter = OPEN_COUNTS + 1; /* decreased immediately after */
+				ESP_LOGD(ui_tag, "Open start");
+				board_set_relay(true);
+				ui_open_counter = OPEN_COUNTS + 1; /* decreased immediately after */
 			}
 		}
 		/* execute patterns */
