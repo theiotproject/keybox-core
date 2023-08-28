@@ -98,7 +98,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 		{
 			case BOARD_EVENT_NEW_CARD: /* process code */
 			{
-				// recived valid CTU card ID
+				/* recived valid CTU card ID */
 				uint64_t *event_card_id = event_data;
 				received_card_id = *event_card_id;
 				ESP_LOGD(app_tag, "Received card ID: %llu", received_card_id);
@@ -110,9 +110,10 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				else
 				{
 					ui_rg_beep_open(UI_ACCESS_DENIED);
-					// access_save_card_id_in_ram(received_card_id, 0x05);
+					report_data.kind = REPORT_KIND_NEW_CARD;
+					report_data.card_id = received_card_id;
+					report_add(&report_data);
 				}
-				// access_set_acl_in_nvs();
 				access_get_acl_from_nvs();
 				break;
 			}
@@ -132,26 +133,20 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 					{
             			case 1:
 							servo = 0;
-                			report_data.card_id = received_card_id;
-							report_data.slot_id = 1;
                 			break;
             			case 2:
 							servo = 1;
-                			report_data.card_id = received_card_id;
-							report_data.slot_id = 2;
                 			break;
             			case 3:
 							servo = 2;
-                			report_data.card_id = received_card_id;
-							report_data.slot_id = 3;
                 			break;
             			default:
                 			break;
             		}
+					report_data.card_id = received_card_id;
+                	report_data.slot_id = servo + 1;
 					board_servo_set_angle(servo, CONFIG_UI_SERVO_OPEN_ANGLE);
 					report_data.kind = REPORT_KIND_SLOT_OPEN;
-					report_add(&report_data);
-					report_data.kind = REPORT_KIND_NEW_CARD;
 					report_add(&report_data);
 				}
             	break;
