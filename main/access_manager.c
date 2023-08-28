@@ -8,7 +8,7 @@ static const char *access_tag = "access";
 static nvs_handle_t access_nvs_handle;
 esp_err_t result;
 
-static size_t acl_size = ACL_SIZE;
+static size_t acl_size = sizeof(ac_t) * ACL_SIZE;
 ac_t acl[ACL_SIZE];
 static uint8_t acl_counter;
 
@@ -66,8 +66,12 @@ void access_save_card_id_in_ram(uint64_t card_id, uint8_t privilege_to_slots)
         /* extract each byte of the card id */
         acl[acl_counter].data[i] = (uint8_t)(card_id >> (8 * i)); 
     }
-    acl[acl_counter].data[SLOTS_BYTE] = privilege_to_slots;
-    acl_counter++;
+
+    if (acl_counter < acl_size)
+    {
+        acl[acl_counter].data[SLOTS_BYTE] = privilege_to_slots;
+        acl_counter++;
+    }
 }
 
 esp_err_t access_get_acl_from_nvs(void)
@@ -88,7 +92,7 @@ esp_err_t access_get_acl_from_nvs(void)
 	}
     
     size_t i;
-    for (i = 0; i < acl_size; i++)
+    for (i = 0; i < acl_counter; i++)
     {
         ESP_LOGD(access_tag, "acl id: %d, card ID: %x, %x, %x, %x, %x, slots: %x", i, acl[i].data[CARD_ID_BYTE_0], acl[i].data[CARD_ID_BYTE_1], acl[i].data[CARD_ID_BYTE_2], acl[i].data[CARD_ID_BYTE_3], acl[i].data[CARD_ID_BYTE_4], acl[i].data[SLOTS_BYTE]);
     } 

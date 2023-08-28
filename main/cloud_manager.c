@@ -17,7 +17,7 @@
 #define CLOUD_FORM_NEW_CARD(r) "%llu,%llu", (uint64_t)(r)->when, (r)->card_id
 #define CLOUD_FORM_SLOT_OPEN(r) "%llu,%llu,%d", (uint64_t)(r)->when, (r)->card_id, (r)->slot_id
 
-void cloud_update_access(golioth_client_t client);
+static void cloud_update_acl(golioth_client_t client);
 static void cloud_parse_acl_cb(golioth_client_t client, const golioth_response_t *rsp, const char *path, const  char *payload, size_t payload_size, void *arg);
 
 typedef struct {
@@ -212,7 +212,7 @@ static void cloud_client_cb(golioth_client_t client, golioth_client_event_t even
 		ESP_ERROR_CHECK(esp_event_post_to(cloud_event_loop, CLOUD_EVENT, CLOUD_EVENT_CONNECTED, NULL, 0, portMAX_DELAY));
 		xEventGroupSetBits(cloud_event_group, CLOUD_EV_CONNECT_BIT);
 		/* update data from LightDB state on connection or if data changes */
-		cloud_update_access(client);
+		cloud_update_acl(client);
 		break;
 	case GOLIOTH_CLIENT_EVENT_DISCONNECTED:
 		ESP_LOGI(cloud_tag, "Disconnected");
@@ -284,7 +284,7 @@ static golioth_status_t cloud_report_exec(report_data_t *report)
 	return(ret);
 }
 
-void cloud_update_access(golioth_client_t client)
+void cloud_update_acl(golioth_client_t client)
 {
 	golioth_status_t ret = golioth_lightdb_observe_async(client, "acl", (void*) cloud_parse_acl_cb, NULL);
 	if (ret != GOLIOTH_OK)
