@@ -28,7 +28,7 @@ void access_init()
 
 bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots)
 {
-    ESP_LOGI(access_tag, "Checking card in nvs");
+    ESP_LOGI(access_tag, "Checking card %llu in nvs", card_id);
     int8_t i, j;
     for (i = 0; i < acl_counter; i++)
     {
@@ -41,7 +41,7 @@ bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots)
         
         if (nvs_card_id == card_id)
         {
-            ESP_LOGI(access_tag, "Found card in nvs");
+            ESP_LOGI(access_tag, "Found card %llu in nvs", card_id);
             if (!privilege_to_slots)
             {
                 ESP_LOGE(access_tag, "Could not get privilege to slots");
@@ -59,7 +59,7 @@ bool access_find_card_id_in_nvs(uint64_t card_id, uint8_t *privilege_to_slots)
 
 void access_save_card_id_in_ram(uint64_t card_id, uint8_t privilege_to_slots)
 {
-    ESP_LOGI(access_tag, "Saving card in ram");
+    ESP_LOGI(access_tag, "Saving card %llu in ram", card_id);
     int8_t i;
     for (i = 0; i < 5; i++) 
     {
