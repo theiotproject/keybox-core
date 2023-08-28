@@ -1,4 +1,4 @@
-menu "IoT Lock Configuration"
+menu "Keybox Core Configuration"
 
     config MAX_CODE_LEN
         int "Maximum supported length of QR code"
