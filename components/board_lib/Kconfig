@@ -40,7 +40,14 @@ menu "Board Library"
     config BOARD_LED_B_GPIO
         int "Blue LED GPIO number"
         range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
-        default 23
+        default 5
+        help
+            GPIO number (IOxx) connected to blue LED.
+
+    config BOARD_LED_Y_GPIO
+        int "Yellow LED GPIO number"
+        range ENV_GPIO_RANGE_MIN ENV_GPIO_OUT_RANGE_MAX
+        default 16 
         help
             GPIO number (IOxx) connected to blue LED.
 

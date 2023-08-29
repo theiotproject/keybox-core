@@ -67,13 +67,15 @@ void board_init(esp_event_loop_handle_t event_loop)
 	timer_conf.speed_mode = LED_MODE;
 	timer_conf.timer_num = LED_TIM;
 	ESP_ERROR_CHECK(ledc_timer_config(&timer_conf));
+	/* defaults ledc start */
 	ledc_conf.flags.output_invert = false;
 	ledc_conf.hpoint = 0;
 	ledc_conf.intr_type = LEDC_INTR_DISABLE;
 	ledc_conf.speed_mode = LED_MODE;
 	ledc_conf.timer_sel = LED_TIM;
-	ledc_conf.channel = BOARD_RED_CH;
 	ledc_conf.duty = 0;
+	/* defaults ledc end */
+	ledc_conf.channel = BOARD_RED_CH;
 	ledc_conf.gpio_num = CONFIG_BOARD_LED_R_GPIO;
 	ESP_ERROR_CHECK(ledc_channel_config(&ledc_conf));
 	ledc_conf.channel = BOARD_GREEN_CH;
@@ -81,6 +83,9 @@ void board_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(ledc_channel_config(&ledc_conf));
 	ledc_conf.channel = BOARD_BLUE_CH;
 	ledc_conf.gpio_num = CONFIG_BOARD_LED_B_GPIO;
+	ESP_ERROR_CHECK(ledc_channel_config(&ledc_conf));
+	ledc_conf.channel = BOARD_YELLOW_CH;
+	ledc_conf.gpio_num = CONFIG_BOARD_LED_Y_GPIO;
 	ESP_ERROR_CHECK(ledc_channel_config(&ledc_conf));
 
 	/* button debounce timer */

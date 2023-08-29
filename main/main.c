@@ -11,8 +11,9 @@
 #include "board_lib.h"
 #include "flash_ring.h"
 #include "wifi_manager.h"
-#include "ui_manager.h"
 #include "cloud_manager.h"
+// #include "ui_manager.h"
+#include "led_manager.h"
 #include "report_manager.h"
 #include "access_manager.h"
 
@@ -59,14 +60,15 @@ void app_main(void)
 	/* storage for produced reports */
 	app_fring_partition = esp_partition_find_first(0x40, 0x00, "flash_ring");
 	board_init(app_event_loop); /* all low level inits */
-	ui_start();
+	// ui_start();
+	led_start();
 	wifi_init(); /* connects to network if configured in the NVS */
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
 	cloud_init(app_event_loop); /* connects to cloud if configured in the NVS */
 	access_init(); /* all nvs inits */ 
 	
-	// create timer which wait 3 secs and close servos
+	/* create timer which wait 3 secs and close servos */
 	servo_close_timer = xTimerCreate("servo", pdMS_TO_TICKS(3000), pdFALSE, NULL, servo_close_cb);
 	ESP_ERROR_CHECK(servo_close_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 }
@@ -91,6 +93,9 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	report_data_t report_data;
 	(void)event_handler_arg;
 	static uint64_t received_card_id = 0;
+	
+	/* notify - ready to work  */
+	led_task_notify(LED_NOTIFY_IDLE);
 
 	if(event_base == BOARD_EVENT)
 	{
@@ -105,11 +110,12 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 
 				if (access_find_card_id_in_nvs(received_card_id, &privilege_to_slots))
 				{	
-					ui_rg_beep_open(UI_ACCESS_GRANTED);
+					//ui_rg_beep_open(UI_ACCESS_GRANTED);
+					break;
 				}
 				else
 				{
-					ui_rg_beep_open(UI_ACCESS_DENIED);
+					//ui_rg_beep_open(UI_ACCESS_DENIED);
 					report_data.kind = REPORT_KIND_NEW_CARD;
 					report_data.card_id = received_card_id;
 					report_add(&report_data);
@@ -157,7 +163,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	if(event_base == IP_EVENT) /* only IP_EVENT_STA_GOT_IP */
 	{
 		app_wifi_connected = true;
-		ui_blue(app_cloud_connected ? UI_NET_OK : UI_NET_NO_CLOUD);
+		//ui_blue(app_cloud_connected ? UI_NET_OK : UI_NET_NO_CLOUD);
 		if(app_cloud_connected && reader_info)
 		{
 			cloud_log(app_tag, reader_info);
@@ -170,7 +176,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	{
 		if(app_wifi_connected)
 		{
-			ui_blue(UI_NET_NO_WIFI);
+			//ui_blue(UI_NET_NO_WIFI);
 			app_wifi_connected = false;
 		}
 		return;
@@ -181,7 +187,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 		{
 			case CLOUD_EVENT_CONNECTED:
 				app_cloud_connected = true;
-				ui_blue(app_wifi_connected ? UI_NET_OK : UI_NET_NO_WIFI);
+				//ui_blue(app_wifi_connected ? UI_NET_OK : UI_NET_NO_WIFI);
 				gettimeofday(&sys_time, NULL);
 				time_str = ctime(&sys_time.tv_sec);
 				time_str[strlen(time_str) - 1] = 0;
@@ -195,22 +201,22 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				break;
 			case CLOUD_EVENT_DISCONNECTED:
 				app_cloud_connected = false;
-				ui_blue(app_wifi_connected ? UI_NET_NO_CLOUD : UI_NET_NO_WIFI);
+				//ui_blue(app_wifi_connected ? UI_NET_NO_CLOUD : UI_NET_NO_WIFI);
 				break;
 			case CLOUD_EVENT_LED: /* RPC led, parameter: number 0 - 256 */
 				led_brg = *(int *)event_data;
-				if(led_brg > UI_MAX_LED_BRG)
-					led_brg = UI_MAX_LED_BRG;
-				ui_brightness(led_brg);
+				// if(led_brg > UI_MAX_LED_BRG)
+				// 	led_brg = UI_MAX_LED_BRG;
+				//ui_brightness(led_brg);
 				break;
 			case CLOUD_EVENT_OPEN: /* RPC parameter: number 1 - grant access, other - deny */
 				if(*(int *)event_data == 1)
 				{
-					ui_rg_beep_open(UI_ACCESS_GRANTED);
+					//ui_rg_beep_open(UI_ACCESS_GRANTED);
 				}
 				else
 				{
-					ui_rg_beep_open(UI_ACCESS_DENIED);
+					//ui_rg_beep_open(UI_ACCESS_DENIED);
 				}
 				break;
 		}

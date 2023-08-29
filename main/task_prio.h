@@ -7,6 +7,7 @@
 #define TP_UPLOAD 1
 #define TP_TAMPER 1
 #define TP_MAIN 2
-#define TP_UI (configMAX_PRIORITIES - 2)
+// #define TP_UI (configMAX_PRIORITIES - 2)
+#define TP_LED (configMAX_PRIORITIES - 2)
 
 #endif /* MAIN_TASK_PRIO_H_ */
