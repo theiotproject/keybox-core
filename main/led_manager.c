@@ -74,55 +74,69 @@ static void led_task(void *arg)
 		if (ulNotifiedValue & LED_NOTIFY_IDLE)
 		{
 			ESP_LOGD(led_tag, "Set blue ON");
-			TimerHandle_t idle_timer = xTimerCreate("Idle", LED_IDLE_CHECK_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
+			TimerHandle_t idle_timer = xTimerCreate("idle", LED_IDLE_CHECK_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
 			ESP_ERROR_CHECK(idle_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 			xTimerStart(idle_timer, portMAX_DELAY);
 		}
 		if (ulNotifiedValue & LED_NOTIFY_ACCESS_SLOT_1)
 		{
-			ESP_LOGD(led_tag, "Set red ON");
+			ESP_LOGD(led_tag, "Set red led ON");
 			board_set_led(LED_ITEM_B, BOARD_LED_MIN);
 			board_set_led(LED_ITEM_R, BOARD_LED_MAX);
-			TimerHandle_t slot_sel_timer = xTimerCreate("slot access 1", LED_SLOT_SEL_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
+			TimerHandle_t slot_sel_timer = xTimerCreate("slot_access_1", LED_SLOT_SEL_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
 			ESP_ERROR_CHECK(slot_sel_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 			xTimerStart(slot_sel_timer, portMAX_DELAY);
 		}
 		if (ulNotifiedValue & LED_NOTIFY_ACCESS_SLOT_2)
 		{
-			ESP_LOGD(led_tag, "Set yellow ON");
+			ESP_LOGD(led_tag, "Set yellow led ON");
 			board_set_led(LED_ITEM_B, BOARD_LED_MIN);
 			board_set_led(LED_ITEM_Y, BOARD_LED_MAX);
-			TimerHandle_t slot_sel_timer = xTimerCreate("slot access 2", LED_SLOT_SEL_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
+			TimerHandle_t slot_sel_timer = xTimerCreate("slot_access_2", LED_SLOT_SEL_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
 			ESP_ERROR_CHECK(slot_sel_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 			xTimerStart(slot_sel_timer, portMAX_DELAY);
 		}
 		if (ulNotifiedValue & LED_NOTIFY_ACCESS_SLOT_3)
 		{
-			ESP_LOGD(led_tag, "Set green ON");
+			ESP_LOGD(led_tag, "Set green led ON");
 			board_set_led(LED_ITEM_B, BOARD_LED_MIN);
 			board_set_led(LED_ITEM_G, BOARD_LED_MAX);
-			TimerHandle_t slot_sel_timer = xTimerCreate("slot access 3", LED_SLOT_SEL_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
+			TimerHandle_t slot_sel_timer = xTimerCreate("slot_access_3", LED_SLOT_SEL_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
 			ESP_ERROR_CHECK(slot_sel_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 			xTimerStart(slot_sel_timer, portMAX_DELAY);
 		}
 		if (ulNotifiedValue & LED_NOTIFY_ACCESS_DENIED)
 		{
-			ESP_LOGD(led_tag, "Blink led red");
 			board_set_led(LED_ITEM_B, BOARD_LED_MIN);
-			board_set_led(LED_ITEM_R, BOARD_LED_MAX);
 			TimerHandle_t access_denied_timer = xTimerCreate("access denied", LED_ACCESS_DENIED_PERIOD, pdFALSE, NULL, (void*) led_pattern_idle_cb);
 			ESP_ERROR_CHECK(access_denied_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 			xTimerStart(access_denied_timer, portMAX_DELAY);
+			ESP_LOGD(led_tag, "Blink led red");
+			for (uint8_t blink = 0; blink < 5; blink++)
+			{
+				board_set_led(LED_ITEM_R, BOARD_LED_MAX);
+				vTaskDelay(100/portTICK_PERIOD_MS);
+				board_set_led(LED_ITEM_R, BOARD_LED_MIN);
+				vTaskDelay(100/portTICK_PERIOD_MS);
+			}
 		}
 		if (ulNotifiedValue & LED_NOTIFY_NO_WIFI)
 		{
-			ESP_LOGD(led_tag, "Set blue led off");
+			ESP_LOGD(led_tag, "Set blue led OFF");
 			board_set_led(LED_ITEM_B, BOARD_LED_MIN);
 		}
 		if (ulNotifiedValue & LED_NOTIFY_NO_CLOUD)
 		{
-			ESP_LOGD(led_tag, "Set blue led off");
+			ESP_LOGD(led_tag, "Set blue led OFF");
 			board_set_led(LED_ITEM_B, BOARD_LED_MIN);
+		}
+		if (ulNotifiedValue & LED_NOTIFY_LEDS_OFF)
+		{
+			ESP_LOGD(led_tag, "Set leds OFF");
+			/* set all leds OFF */
+			uint8_t led_ch;
+			for (led_ch = 0; led_ch < LED_ITEM_MAX; led_ch++)
+				board_set_led(led_ch, BOARD_LED_MIN);
 		}
 	}
 }

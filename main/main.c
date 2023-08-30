@@ -40,7 +40,7 @@ typedef enum
 	SLOT_2,
 	SLOT_3,
 	SLOT_MAX
-};
+} main_slots_t;
 
 void app_main(void)
 {
@@ -73,8 +73,7 @@ void app_main(void)
 	/* storage for produced reports */
 	app_fring_partition = esp_partition_find_first(0x40, 0x00, "flash_ring");
 	board_init(app_event_loop); /* all low level inits */
-	// ui_start();
-	led_start();
+	led_start(); /* set up led manager main task */
 	wifi_init(); /* connects to network if configured in the NVS */
 	report_start(app_fring_partition); /* saves and uploads reports */
 	board_reader_start(app_event_loop, TP_READER); /* reads QR codes */
@@ -144,6 +143,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 							led_task_notify(slot_bit_mask);
 					}
 
+					/* remove privilages when user does not do anything */
 					xTimerStart(remove_privilages_timer, 0);
 					break;
 				}
@@ -167,6 +167,9 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				uint8_t button_bit_mask = (uint8_t) 1 << ((*button) - 1);
 				if (button_bit_mask & privilege_to_slots)
 				{
+					/* light clicked button */
+					led_task_notify(LED_NOTIFY_LEDS_OFF);
+					led_task_notify(button_bit_mask);
             		report_data.when = 0;
 					/* check access to slots */
 					switch(*button)
