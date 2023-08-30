@@ -4,13 +4,14 @@
 #include "esp_event.h"
 #include "driver/ledc.h"
 
-#define BOARD_HW_INFO "ACWT-1A"
+#define BOARD_HW_INFO "Keybox Core prototype"
 
 #define BOARD_RED_CH LEDC_CHANNEL_0
 #define BOARD_GREEN_CH LEDC_CHANNEL_1
 #define BOARD_BLUE_CH LEDC_CHANNEL_2
 #define BOARD_YELLOW_CH LEDC_CHANNEL_3
 #define BOARD_LED_MAX 1023
+#define BOARD_LED_MIN 0
 
 typedef enum {
 	BOARD_EVENT_NEW_CARD,

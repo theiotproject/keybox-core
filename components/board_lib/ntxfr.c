@@ -47,7 +47,9 @@ uint8_t get_cmd_res(const uint8_t *payload)
 uint16_t get_crc(const ntxfr_data_t payload)
 {
 	uint16_t crc = 0x0000;
-	memcpy(&crc, payload.ptr + payload.len - 2, sizeof(crc));
+	// memcpy(&crc, payload.ptr + payload.len - 2, sizeof(crc));
+	crc = payload.ptr[payload.len - 2] << 8;
+	crc += payload.ptr[payload.len - 1];
 	return crc;
 }
 

@@ -108,14 +108,15 @@ static void ctu_task(void *arg)
 					{
 						ntxfr_data_t ctu_id_data;
 						ctu_id_data = ntxfr_get_data(ntx_data);
-						if (ctu_id_data.len == 1 + 5 && ctu_id_data.ptr[0] == 0x00)
+						if (ctu_id_data.len == 1 + 5)
 						{
 							/* no colisions and valid ID length */
 							int i;
 							/* report new card */
 							card_id = 0;
-							for(i = 0; i < 5; i++) {
-								card_id += ((uint64_t)ctu_id_data.ptr[i + 1]) << (8 * i);
+							for(i = 0; i < ctu_id_data.len - 1; i++) {
+								ESP_LOGD(ctu_tag, "0x%x", ctu_id_data.ptr[i]);
+								card_id += ((uint64_t)ctu_id_data.ptr[i]) << (8 * i);
 							}
 							ESP_LOGD(ctu_tag, "Received card ID: %llu", card_id);
 							ESP_ERROR_CHECK(esp_event_post_to(ctu_event_loop, BOARD_EVENT, BOARD_EVENT_NEW_CARD, &card_id, sizeof(card_id), portMAX_DELAY));
@@ -128,7 +129,7 @@ static void ctu_task(void *arg)
 						ESP_LOGD(ctu_tag, "Unexpected response: %x", ntxfr_get_res(ntx_data));
 					}
 				} else {
-					//ESP_LOGW(ctu_tag, "Received invalid frame. cCRC: %x, hCRC: %x, len: %d", calc_crc(ntx_data), get_crc(ntx_data), get_len(ntx_data.ptr));
+					// ESP_LOGW(ctu_tag, "Received invalid frame. cCRC: %x, hCRC: %x, len: %d", calc_crc(ntx_data), get_crc(ntx_data), get_len(ntx_data.ptr));
 					ESP_LOGW(ctu_tag, "Received invalid frame.");
 				}
 				code_pos = 0; /* load buffer again */

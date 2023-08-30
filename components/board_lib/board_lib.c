@@ -31,7 +31,6 @@ ESP_EVENT_DEFINE_BASE(BOARD_EVENT);
 
 static void button_gpio_isr(void* arg);
 static void button_timer_cb(TimerHandle_t timer);
-static void servo_close_cb(TimerHandle_t timer);
 
 static esp_event_loop_handle_t board_event_loop;
 TimerHandle_t board_button_timer;

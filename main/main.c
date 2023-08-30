@@ -17,17 +17,30 @@
 #include "report_manager.h"
 #include "access_manager.h"
 
+#define SERVO_OPEN_PERIOD pdMS_TO_TICKS(3000)
+
 static const char *app_tag = "app";
 
 static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 static void servo_close_cb(TimerHandle_t timer);
+static void remove_privilages_cb(TimerHandle_t timer);
 
 const esp_partition_t *app_fring_partition;
 static esp_event_loop_handle_t app_event_loop;
 
+TimerHandle_t remove_privilages_timer;
 static uint8_t privilege_to_slots = 0x00;
+
 TimerHandle_t servo_close_timer;
 static board_servo_t servo;
+
+typedef enum 
+{
+	SLOT_1,
+	SLOT_2,
+	SLOT_3,
+	SLOT_MAX
+};
 
 void app_main(void)
 {
@@ -69,16 +82,31 @@ void app_main(void)
 	access_init(); /* all nvs inits */ 
 	
 	/* create timer which wait 3 secs and close servos */
-	servo_close_timer = xTimerCreate("servo", pdMS_TO_TICKS(3000), pdFALSE, NULL, servo_close_cb);
+	servo_close_timer = xTimerCreate("servo", SERVO_OPEN_PERIOD, pdFALSE, NULL, servo_close_cb);
 	ESP_ERROR_CHECK(servo_close_timer == NULL ? ESP_ERR_NO_MEM : ESP_OK);
+	
+	/* idle state waiting for card scanning  */
+	led_task_notify(LED_NOTIFY_IDLE);
+	
+	/* create timer to revoke privilages to slots */	
+	remove_privilages_timer = xTimerCreate("remove_privilages", LED_SLOT_SEL_PERIOD, pdFALSE, NULL, remove_privilages_cb);
+	ESP_ERROR_CHECK(remove_privilages_cb == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 }
 
 static void servo_close_cb(TimerHandle_t timer)
 {
 	(void) timer;
 	board_servo_set_angle(servo, CONFIG_UI_SERVO_CLOSE_ANGLE);
-	privilege_to_slots = 0x00;
+	privilege_to_slots = 0;
 	ESP_LOGD(app_tag, "Slot close");
+}
+
+static void remove_privilages_cb(TimerHandle_t timer)
+{
+	(void) timer;
+	privilege_to_slots = 0;
+	ESP_LOGD(app_tag, "Removed privilages");
+	led_task_notify(LED_NOTIFY_IDLE);
 }
 
 /* executed by the application loop task */
@@ -94,9 +122,6 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	(void)event_handler_arg;
 	static uint64_t received_card_id = 0;
 	
-	/* notify - ready to work  */
-	led_task_notify(LED_NOTIFY_IDLE);
-
 	if(event_base == BOARD_EVENT)
 	{
 		switch(event_id)
@@ -110,12 +135,21 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 
 				if (access_find_card_id_in_nvs(received_card_id, &privilege_to_slots))
 				{	
-					//ui_rg_beep_open(UI_ACCESS_GRANTED);
+					uint32_t slot_bit_mask;
+					uint8_t slot;
+					for (slot = 0; slot < SLOT_MAX; slot++)	
+					{
+						slot_bit_mask = (uint32_t) 1 << slot;
+						if (slot_bit_mask & privilege_to_slots)
+							led_task_notify(slot_bit_mask);
+					}
+
+					xTimerStart(remove_privilages_timer, 0);
 					break;
 				}
 				else
 				{
-					//ui_rg_beep_open(UI_ACCESS_DENIED);
+					led_task_notify(LED_NOTIFY_ACCESS_DENIED);
 					report_data.kind = REPORT_KIND_NEW_CARD;
 					report_data.card_id = received_card_id;
 					report_add(&report_data);
@@ -130,7 +164,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				uint8_t *button = event_data;
             	ESP_LOGD(app_tag, "Button pressed: %d", *button);
 				ESP_LOGD(app_tag, "Privilege slots: %d", privilege_to_slots);
-				uint8_t button_bit_mask = 0b00000001 << ((*button) - 1);
+				uint8_t button_bit_mask = (uint8_t) 1 << ((*button) - 1);
 				if (button_bit_mask & privilege_to_slots)
 				{
             		report_data.when = 0;
@@ -162,8 +196,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	}
 	if(event_base == IP_EVENT) /* only IP_EVENT_STA_GOT_IP */
 	{
-		app_wifi_connected = true;
-		//ui_blue(app_cloud_connected ? UI_NET_OK : UI_NET_NO_CLOUD);
+		led_task_notify(LED_NOTIFY_IDLE);
 		if(app_cloud_connected && reader_info)
 		{
 			cloud_log(app_tag, reader_info);
@@ -176,8 +209,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 	{
 		if(app_wifi_connected)
 		{
-			//ui_blue(UI_NET_NO_WIFI);
-			app_wifi_connected = false;
+			led_task_notify(LED_NOTIFY_NO_WIFI);
 		}
 		return;
 	}
@@ -186,8 +218,7 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 		switch(event_id)
 		{
 			case CLOUD_EVENT_CONNECTED:
-				app_cloud_connected = true;
-				//ui_blue(app_wifi_connected ? UI_NET_OK : UI_NET_NO_WIFI);
+				led_task_notify(LED_NOTIFY_IDLE);
 				gettimeofday(&sys_time, NULL);
 				time_str = ctime(&sys_time.tv_sec);
 				time_str[strlen(time_str) - 1] = 0;
@@ -200,14 +231,13 @@ static void app_event_cb(void *event_handler_arg, esp_event_base_t event_base, i
 				}
 				break;
 			case CLOUD_EVENT_DISCONNECTED:
-				app_cloud_connected = false;
-				//ui_blue(app_wifi_connected ? UI_NET_NO_CLOUD : UI_NET_NO_WIFI);
+				led_task_notify(LED_NOTIFY_NO_CLOUD);
 				break;
 			case CLOUD_EVENT_LED: /* RPC led, parameter: number 0 - 256 */
 				led_brg = *(int *)event_data;
-				// if(led_brg > UI_MAX_LED_BRG)
-				// 	led_brg = UI_MAX_LED_BRG;
-				//ui_brightness(led_brg);
+				if(led_brg > LED_MAX_LED_BRG)
+					led_brg = LED_MAX_LED_BRG;
+				led_brightness_set(led_brg);
 				break;
 			case CLOUD_EVENT_OPEN: /* RPC parameter: number 1 - grant access, other - deny */
 				if(*(int *)event_data == 1)
