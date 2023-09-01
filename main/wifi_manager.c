@@ -46,7 +46,7 @@ void wifi_init(void)
 	ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL, NULL));
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 	ESP_ERROR_CHECK(nvs_open(wifi_tag, NVS_READWRITE, &wifi_nvs_handle));
-	wifi_join(NULL, NULL);
+	wifi_join(CONFIG_WIFI_SSID, CONFIG_WIFI_PASS);
 }
 
 /* sets configuration and joins network, also used to change network on the fly */

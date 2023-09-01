@@ -14,6 +14,26 @@ config ENV_GPIO_OUT_RANGE_MAX
     int
     default 33
 
+menu "Credentials"
+
+    config WIFI_SSID
+        string "Wifi SSID"
+        default NULL 
+        
+    config WIFI_PASS
+        string "Wifi password"
+        default NULL
+        
+    config PRIMARY_HARDWARE_ID
+        string "Primary hardware id from cloud"
+        default NULL
+    
+    config DEVICE_ID
+        string "Device id from cloud"
+        default NULL
+
+endmenu
+
 menu "Board Library"
 
     config BOARD_BUZZ_GPIO

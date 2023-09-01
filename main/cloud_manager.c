@@ -68,7 +68,7 @@ void cloud_init(esp_event_loop_handle_t event_loop)
 	ESP_ERROR_CHECK(cloud_event_group == NULL ? ESP_ERR_NO_MEM : ESP_OK);
 	ESP_ERROR_CHECK(nvs_open(cloud_tag, NVS_READWRITE, &cloud_nvs_handle));
 	cloud_event_loop = event_loop;
-	cloud_join(NULL, NULL);
+	cloud_join(CONFIG_PRIMARY_HARDWARE_ID, CONFIG_DEVICE_ID);
 }
 
 /* updates service configuration */
